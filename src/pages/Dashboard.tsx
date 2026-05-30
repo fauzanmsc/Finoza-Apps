@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Calendar, ChevronDown, MoreHorizontal, ArrowUpRight, ArrowDownRight, Wallet, Loader2, Plus, LineChart as LineChartIcon } from 'lucide-react';
+import { Calendar, ChevronDown, MoreHorizontal, ArrowUpRight, ArrowDownRight, Wallet, Loader2, Plus, LineChart as LineChartIcon, User } from 'lucide-react';
 import { AreaChart, Area, Tooltip, ResponsiveContainer, XAxis, YAxis, PieChart, Pie, Cell, Legend } from 'recharts';
 import TransactionModal from '../components/transactions/TransactionModal';
 import { fetchApi } from '../services/api';
@@ -12,7 +12,8 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [allTransactions, setAllTransactions] = useState<any[]>([]);
   const [periodFilter, setPeriodFilter] = useState('3months');
-  
+  const [imgError, setImgError] = useState(false);
+
   const token = useAuth(state => state.token);
   const user = useAuth(state => state.user);
 
@@ -23,7 +24,7 @@ export default function Dashboard() {
         fetchApi('GET_TRANSACTIONS', {}, token!),
         fetchApi('GET_ACCOUNTS', {}, token!)
       ]);
-      
+
       const transactions = resTx.status === 'success' && Array.isArray(resTx.data) ? resTx.data : [];
       const accounts = resAcc.status === 'success' && Array.isArray(resAcc.data) ? resAcc.data : [];
 
@@ -100,13 +101,13 @@ export default function Dashboard() {
 
   // Pie chart data
   const pieData = [
-    { name: 'Income', value: data.total_income || 0, color: '#10B981' },
-    { name: 'Expense', value: data.total_expense || 0, color: '#EF4444' },
+    { name: 'Pemasukan', value: data.total_income || 0, color: '#10B981' },
+    { name: 'Pengeluaran', value: data.total_expense || 0, color: '#EF4444' },
   ].filter(d => d.value > 0);
 
   const getFilteredCashflow = () => {
     if (!allTransactions || allTransactions.length === 0) return data?.cashflow || [];
-    
+
     const now = new Date();
     let startDate = new Date();
     let formatLabel = (d: Date) => d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
@@ -147,22 +148,28 @@ export default function Dashboard() {
       {/* MOBILE LAYOUT (< lg)                     */}
       {/* ========================================= */}
       <div className="block lg:hidden px-4 pt-4 pb-28 w-full max-w-md mx-auto relative">
-        
+
         {/* Header - compact */}
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
-            <img 
-              src={user?.profile_picture_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.full_name || 'User'}`} 
-              alt="Profile" 
-              onError={(e) => { (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.full_name || 'User'}`; }}
-              className="w-10 h-10 rounded-full object-cover bg-slate-800 border-2 border-white/5 flex-shrink-0" 
-            />
+            {user?.profile_picture_url && !imgError && user.profile_picture_url !== 'null' ? (
+              <img
+                src={user.profile_picture_url}
+                alt="Profile"
+                onError={() => setImgError(true)}
+                className="w-10 h-10 rounded-full object-cover bg-slate-800 border-2 border-white/5 flex-shrink-0"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center flex-shrink-0 border-2 border-white/5">
+                <User className="w-5 h-5 text-slate-500" />
+              </div>
+            )}
             <div className="min-w-0">
-              <h2 className="text-white font-semibold text-base leading-tight truncate">Hai, {user?.full_name?.split(' ')[0] || 'User'}</h2>
+              <h2 className="font-semibold text-base leading-tight truncate">Hai, {user?.full_name?.split(' ')[0] || 'User'}</h2>
               <p className="text-slate-400 text-xs">Wallet • {user?.currency || 'IDR'}</p>
             </div>
           </div>
-          <button onClick={() => openModal()} className="w-10 h-10 bg-[var(--color-stabilo)] rounded-xl flex items-center justify-center text-black shadow-[0_0_12px_rgba(204,255,0,0.3)] flex-shrink-0">
+          <button onClick={() => openModal()} className="w-10 h-10 bg-[var(--color-stabilo)] rounded-xl flex items-center justify-center text-white shadow-[0_0_12px_rgba(204,255,0,0.3)] flex-shrink-0">
             <Plus className="w-5 h-5 stroke-[2.5px]" />
           </button>
         </div>
@@ -170,13 +177,13 @@ export default function Dashboard() {
         {/* Account Cards (horizontal scroll) */}
         <div className="flex gap-3 overflow-x-auto pb-3 -mx-4 px-4 scrollbar-hide mb-5">
           {/* Total balance card */}
-          <div className="min-w-[200px] bg-[#1A2634] rounded-2xl p-4 flex flex-col justify-between flex-shrink-0 border border-white/5">
-            <p className="text-slate-400 text-xs mb-1">Total Balance</p>
+          <div className="min-w-[200px] bg-surface-dark rounded-2xl p-4 flex flex-col justify-between flex-shrink-0 border border-black/5 dark:border-white/5">
+            <p className="text-[var(--color-text-muted)] text-xs mb-1">Total Saldo</p>
             <p className="text-2xl font-bold text-[var(--color-stabilo)] tracking-tight">{formatShort(data.net_balance)}</p>
-            <p className="text-slate-500 text-[10px] mt-1">{formatRp(data.net_balance)}</p>
+            <p className="text-[var(--color-text-muted)] text-[10px] mt-1">{formatRp(data.net_balance)}</p>
           </div>
           {data.accounts?.map((acc: any, i: number) => (
-            <div key={i} className="min-w-[160px] rounded-2xl p-4 flex flex-col justify-between flex-shrink-0 border border-white/5" style={{ background: acc.color_hex || '#1E3A8A' }}>
+            <div key={i} className="min-w-[160px] rounded-2xl p-4 flex flex-col justify-between flex-shrink-0 border border-black/5 dark:border-white/5" style={{ background: acc.color_hex || '#1E3A8A' }}>
               <p className="text-white/70 text-xs truncate">{acc.account_name}</p>
               <p className="text-white font-bold text-lg mt-2">{formatShort(acc.initial_balance || 0)}</p>
               <p className="text-white/40 text-[10px]">{acc.account_type}</p>
@@ -186,24 +193,24 @@ export default function Dashboard() {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-2 gap-3 mb-5">
-          <button onClick={() => openModal('Expense')} className="bg-[#1A2634] py-4 rounded-2xl flex flex-col items-center gap-2 active:scale-95 transition-transform border border-white/5">
+          <button onClick={() => openModal('Expense')} className="bg-surface rounded-2xl py-4 flex flex-col items-center gap-2 active:scale-95 transition-transform border border-black/5 dark:border-white/5">
             <div className="w-10 h-10 rounded-full bg-negative/10 flex items-center justify-center">
               <ArrowUpRight className="w-5 h-5 text-negative stroke-[2.5px]" />
             </div>
-            <span className="text-white font-medium text-sm">Expense</span>
+            <span className="text-[var(--color-text-foreground)] font-medium text-sm">Pengeluaran</span>
           </button>
-          <button onClick={() => openModal('Income')} className="bg-[#1A2634] py-4 rounded-2xl flex flex-col items-center gap-2 active:scale-95 transition-transform border border-white/5">
+          <button onClick={() => openModal('Income')} className="bg-surface rounded-2xl py-4 flex flex-col items-center gap-2 active:scale-95 transition-transform border border-black/5 dark:border-white/5">
             <div className="w-10 h-10 rounded-full bg-positive/10 flex items-center justify-center">
               <ArrowDownRight className="w-5 h-5 text-positive stroke-[2.5px]" />
             </div>
-            <span className="text-white font-medium text-sm">Income</span>
+            <span className="text-[var(--color-text-foreground)] font-medium text-sm">Pemasukan</span>
           </button>
         </div>
 
         {/* Income vs Expense Insight (Pie) */}
         {pieData.length > 0 && (
-          <div className="bg-[#1A2634] rounded-2xl p-4 mb-5 border border-white/5">
-            <h3 className="text-sm font-medium text-white mb-3">Insight Bulan Ini</h3>
+          <div className="bg-surface rounded-2xl p-4 mb-5 border border-black/5 dark:border-white/5">
+            <h3 className="text-sm font-medium text-[var(--color-text-foreground)] mb-3">Insight Bulan Ini</h3>
             <div className="flex items-center gap-2">
               <div className="w-[120px] h-[120px] flex-shrink-0">
                 <ResponsiveContainer width="100%" height="100%">
@@ -217,11 +224,11 @@ export default function Dashboard() {
               </div>
               <div className="flex-1 space-y-2">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-positive" /><span className="text-xs text-slate-300">Income</span></div>
+                  <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-positive" /><span className="text-xs text-[var(--color-text-muted)]">Pemasukan</span></div>
                   <span className="text-xs font-medium text-positive">{formatRp(data.total_income)}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-negative" /><span className="text-xs text-slate-300">Expense</span></div>
+                  <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-negative" /><span className="text-xs text-[var(--color-text-muted)]">Pengeluaran</span></div>
                   <span className="text-xs font-medium text-negative">{formatRp(data.total_expense)}</span>
                 </div>
               </div>
@@ -230,13 +237,13 @@ export default function Dashboard() {
         )}
 
         {/* Cashflow Chart (compact) */}
-        <div className="bg-[#1A2634] rounded-2xl p-4 mb-5 border border-white/5">
+        <div className="bg-surface rounded-2xl p-4 mb-5 border border-black/5 dark:border-white/5">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-medium text-white">Cashflow</h3>
-            <select 
-              value={periodFilter} 
+            <h3 className="text-sm font-medium text-[var(--color-text-foreground)]">Arus Kas</h3>
+            <select
+              value={periodFilter}
               onChange={e => setPeriodFilter(e.target.value)}
-              className="bg-black/20 border border-white/10 text-xs rounded-lg px-2 py-1 text-white focus:outline-none"
+              className="bg-black/5 dark:bg-black/20 border border-black/5 dark:border-white/10 text-xs rounded-lg px-2 py-1 text-[var(--color-text-foreground)] focus:outline-none"
             >
               <option value="weekly">Mingguan</option>
               <option value="monthly">Bulanan</option>
@@ -249,27 +256,27 @@ export default function Dashboard() {
               <AreaChart data={cashflowData}>
                 <defs>
                   <linearGradient id="mIncome" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10B981" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#10B981" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="mExpense" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#EF4444" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#EF4444" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#EF4444" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#EF4444" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: '#94a3b8', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={formatAxisTick} width={40} />
-                <Tooltip contentStyle={{ backgroundColor: '#1A2634', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: '#fff', fontSize: 12 }} formatter={(v: any) => formatRp(v)} />
-                <Area type="monotone" dataKey="income" stroke="#10B981" strokeWidth={2} fillOpacity={1} fill="url(#mIncome)" name="Income" />
-                <Area type="monotone" dataKey="expense" stroke="#EF4444" strokeWidth={2} fillOpacity={1} fill="url(#mExpense)" name="Expense" />
+                <Tooltip contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: 'var(--color-text-foreground)', fontSize: 12 }} formatter={(v: any) => formatRp(v)} />
+                <Area type="monotone" dataKey="income" stroke="#10B981" strokeWidth={2} fillOpacity={1} fill="url(#mIncome)" name="Pemasukan" />
+                <Area type="monotone" dataKey="expense" stroke="#EF4444" strokeWidth={2} fillOpacity={1} fill="url(#mExpense)" name="Pengeluaran" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* Recent Transactions */}
-        <div className="bg-[#1A2634] rounded-2xl p-4 border border-white/5">
-          <h3 className="text-sm font-medium text-white mb-3">Transaksi Terbaru</h3>
+        <div className="bg-surface rounded-2xl p-4 border border-black/5 dark:border-white/5">
+          <h3 className="text-sm font-medium text-[var(--color-text-foreground)] mb-3">Transaksi Terbaru</h3>
           <div className="space-y-3">
             {data.recent_transactions?.map((tx: any, i: number) => (
               <div key={i} className="flex items-center justify-between">
@@ -278,8 +285,8 @@ export default function Dashboard() {
                     {tx.tx_type === 'Income' ? <ArrowDownRight className="w-4 h-4 text-positive" /> : <ArrowUpRight className="w-4 h-4 text-negative" />}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-white truncate">{tx.note || tx.category_id || 'Transaksi'}</p>
-                    <p className="text-[10px] text-slate-500">{tx.tx_date}</p>
+                    <p className="text-sm font-medium text-[var(--color-text-foreground)] truncate">{tx.note || tx.category_id || 'Transaksi'}</p>
+                    <p className="text-[10px] text-[var(--color-text-muted)]">{tx.tx_date}</p>
                   </div>
                 </div>
                 <p className={`text-sm font-semibold flex-shrink-0 ml-2 ${tx.tx_type === 'Income' ? 'text-positive' : 'text-negative'}`}>
@@ -288,7 +295,7 @@ export default function Dashboard() {
               </div>
             ))}
             {(!data.recent_transactions || data.recent_transactions.length === 0) && (
-              <p className="text-center text-slate-500 text-sm py-4">Belum ada transaksi</p>
+              <p className="text-center text-[var(--color-text-muted)] text-sm py-4">Belum ada transaksi</p>
             )}
           </div>
         </div>
@@ -301,19 +308,25 @@ export default function Dashboard() {
       <div className="hidden lg:block p-4 lg:p-8 w-full max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <img 
-              src={user?.profile_picture_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.full_name || 'User'}`} 
-              alt="Profile" 
-              onError={(e) => { (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.full_name || 'User'}`; }}
-              className="w-12 h-12 rounded-full object-cover bg-slate-800" 
-            />
+            {user?.profile_picture_url && !imgError && user.profile_picture_url !== 'null' ? (
+              <img
+                src={user.profile_picture_url}
+                alt="Profile"
+                onError={() => setImgError(true)}
+                className="w-12 h-12 rounded-full object-cover bg-slate-800"
+              />
+            ) : (
+              <div className="w-12 h-12 rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center">
+                <User className="w-6 h-6 text-slate-500" />
+              </div>
+            )}
             <div>
-              <h2 className="text-2xl font-bold">Welcome back, {user?.full_name?.split(' ')[0] || 'User'}! 👋</h2>
-              <p className="text-[var(--color-text-muted)] text-sm">Here's what's happening with your finances today.</p>
+              <h2 className="text-2xl font-bold">Selamat datang, {user?.full_name?.split(' ')[0] || 'User'}! 👋</h2>
+              <p className="text-[var(--color-text-muted)] text-sm">Berikut ringkasan keuangan Anda hari ini.</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <button onClick={() => openModal()} className="bg-[var(--color-stabilo)] hover:bg-[#b3e600] text-black px-4 py-2 rounded-xl flex items-center gap-2 text-sm font-bold transition-colors shadow-lg shadow-[var(--color-stabilo)]/30">
+            <button onClick={() => openModal()} className="bg-[var(--color-stabilo)] hover:bg-[#b3e600] text-white px-4 py-2 rounded-xl flex items-center gap-2 text-sm font-bold transition-colors shadow-lg shadow-[var(--color-stabilo)]/30">
               <span className="text-lg leading-none">+</span> Catat Transaksi
             </button>
           </div>
@@ -323,7 +336,7 @@ export default function Dashboard() {
           {/* Left Column */}
           <div className="col-span-1 lg:col-span-2 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              
+
               {/* Balance Card */}
               <div className="glass rounded-2xl p-6 relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
@@ -331,15 +344,15 @@ export default function Dashboard() {
                 </div>
                 <h3 className="text-[var(--color-text-muted)] text-sm font-medium mb-2">Saldo Bersih</h3>
                 <p className="text-4xl font-bold tracking-tight mb-6">{formatRp(data.net_balance)}</p>
-                
+
                 <div className="flex gap-4">
                   <button onClick={() => openModal('Income')} className="flex-1 bg-surface-light hover:bg-black/5 dark:hover:bg-white/10 transition-colors py-3 rounded-xl flex items-center justify-center gap-2">
                     <ArrowDownRight className="w-5 h-5 text-positive" />
-                    <span className="font-medium text-sm">Income</span>
+                    <span className="font-medium text-sm">Pemasukan</span>
                   </button>
                   <button onClick={() => openModal('Expense')} className="flex-1 bg-surface-light hover:bg-black/5 dark:hover:bg-white/10 transition-colors py-3 rounded-xl flex items-center justify-center gap-2">
                     <ArrowUpRight className="w-5 h-5 text-negative" />
-                    <span className="font-medium text-sm">Expense</span>
+                    <span className="font-medium text-sm">Pengeluaran</span>
                   </button>
                 </div>
               </div>
@@ -367,9 +380,9 @@ export default function Dashboard() {
             <div className="glass rounded-2xl p-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                 <div className="flex items-center gap-4">
-                  <h3 className="font-medium">In/Out Cashflow</h3>
-                  <select 
-                    value={periodFilter} 
+                  <h3 className="font-medium">Arus Kas Masuk/Keluar</h3>
+                  <select
+                    value={periodFilter}
                     onChange={e => setPeriodFilter(e.target.value)}
                     className="bg-black/10 dark:bg-white/5 border border-black/10 dark:border-border text-sm rounded-lg px-3 py-1.5 focus:outline-none text-[var(--color-text-foreground)]"
                   >
@@ -380,8 +393,8 @@ export default function Dashboard() {
                   </select>
                 </div>
                 <div className="flex items-center gap-4 text-xs">
-                  <span className="flex items-center gap-1.5"><span className="w-3 h-0.5 bg-positive rounded-full inline-block" /> Income</span>
-                  <span className="flex items-center gap-1.5"><span className="w-3 h-0.5 bg-negative rounded-full inline-block" /> Expense</span>
+                  <span className="flex items-center gap-1.5"><span className="w-3 h-0.5 bg-positive rounded-full inline-block" /> Pemasukan</span>
+                  <span className="flex items-center gap-1.5"><span className="w-3 h-0.5 bg-negative rounded-full inline-block" /> Pengeluaran</span>
                 </div>
               </div>
               <div className="h-56 w-full">
@@ -389,24 +402,24 @@ export default function Dashboard() {
                   <AreaChart data={cashflowData}>
                     <defs>
                       <linearGradient id="dIncome" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#10B981" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
+                        <stop offset="5%" stopColor="#10B981" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
                       </linearGradient>
                       <linearGradient id="dExpense" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#EF4444" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#EF4444" stopOpacity={0}/>
+                        <stop offset="5%" stopColor="#EF4444" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#EF4444" stopOpacity={0} />
                       </linearGradient>
                     </defs>
                     <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 12 }} axisLine={{ stroke: '#334155' }} tickLine={false} />
                     <YAxis tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={{ stroke: '#334155' }} tickLine={false} tickFormatter={formatAxisTick} width={50} />
                     <Tooltip contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: 'var(--color-text-foreground)' }} formatter={(v: any) => formatRp(v)} />
-                    <Area type="monotone" dataKey="income" stroke="#10B981" strokeWidth={3} fillOpacity={1} fill="url(#dIncome)" name="Income" />
-                    <Area type="monotone" dataKey="expense" stroke="#EF4444" strokeWidth={3} fillOpacity={1} fill="url(#dExpense)" name="Expense" />
+                    <Area type="monotone" dataKey="income" stroke="#10B981" strokeWidth={3} fillOpacity={1} fill="url(#dIncome)" name="Pemasukan" />
+                    <Area type="monotone" dataKey="expense" stroke="#EF4444" strokeWidth={3} fillOpacity={1} fill="url(#dExpense)" name="Pengeluaran" />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
             </div>
-            
+
             {/* Transactions List */}
             <div className="glass rounded-2xl p-6">
               <h3 className="font-medium mb-6">Transaksi Terbaru</h3>
@@ -453,11 +466,11 @@ export default function Dashboard() {
                   </div>
                   <div className="w-full space-y-3 mt-4">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-positive" /><span className="text-sm text-[var(--color-text-muted)]">Income</span></div>
+                      <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-positive" /><span className="text-sm text-[var(--color-text-muted)]">Pemasukan</span></div>
                       <span className="text-sm font-semibold text-positive">{formatRp(data.total_income)}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-negative" /><span className="text-sm text-[var(--color-text-muted)]">Expense</span></div>
+                      <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-negative" /><span className="text-sm text-[var(--color-text-muted)]">Pengeluaran</span></div>
                       <span className="text-sm font-semibold text-negative">{formatRp(data.total_expense)}</span>
                     </div>
                   </div>

@@ -11,6 +11,7 @@ export default function Settings() {
   const [success, setSuccess] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
   const token = useAuth(state => state.token);
   const user = useAuth(state => state.user);
@@ -47,15 +48,17 @@ export default function Settings() {
         <div className="glass p-6 rounded-2xl flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-full bg-surface-light flex items-center justify-center overflow-hidden border-2 border-white/5">
-              {user?.profile_picture_url ? (
+              {user?.profile_picture_url && !imgError && user.profile_picture_url !== 'null' ? (
                 <img
                   src={user.profile_picture_url}
                   alt="Profile"
-                  onError={(e) => { (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.full_name || 'User'}`; }}
+                  onError={() => setImgError(true)}
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.full_name || 'User'}`} alt="Avatar" className="w-full h-full object-cover" />
+                <div className="w-full h-full bg-black/10 dark:bg-white/10 flex items-center justify-center">
+                  <User className="w-8 h-8 text-slate-400" />
+                </div>
               )}
             </div>
             <div>

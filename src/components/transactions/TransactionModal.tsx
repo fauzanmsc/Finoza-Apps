@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Calendar, WalletCards, FileText, ArrowUpRight, ArrowDownRight, ArrowLeftRight } from 'lucide-react';
+import { X, Calendar, WalletCards, FileText, ArrowUpRight, ArrowDownRight, ArrowLeftRight, Tags } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { fetchApi } from '../../services/api';
 import { useAuth } from '../../store/useAuth';
@@ -18,25 +18,58 @@ export default function TransactionModal({ isOpen, onClose, onRefresh, initialDa
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
   const [txDate, setTxDate] = useState(new Date().toISOString().split('T')[0]);
-  const [accountId, setAccountId] = useState('Bank BCA');
+  const [accountId, setAccountId] = useState('');
+  const [accounts, setAccounts] = useState<any[]>([]);
+  const [categoryId, setCategoryId] = useState('');
+  const [categories, setCategories] = useState<any[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const token = useAuth(state => state.token);
 
   useEffect(() => {
-    if (initialData && isOpen) {
-      setTxType((initialData.tx_type || 'Expense') as TxType);
-      setAmount(formatRupiah(initialData.amount?.toString() || '0'));
-      setNote(initialData.note || '');
-      setTxDate(initialData.tx_date || new Date().toISOString().split('T')[0]);
-      setAccountId(initialData.account_src_id || 'Bank BCA');
-    } else {
-      setTxType('Expense');
-      setAmount('');
-      setNote('');
-      setTxDate(new Date().toISOString().split('T')[0]);
-      setAccountId('Bank BCA');
+    if (isOpen) {
+      const loadData = async () => {
+        const [resAcc, resCat] = await Promise.all([
+          fetchApi('GET_ACCOUNTS', {}, token!),
+          fetchApi('GET_CATEGORIES', {}, token!)
+        ]);
+        if (resAcc.status === 'success' && Array.isArray(resAcc.data)) {
+          setAccounts(resAcc.data);
+          if (initialData?.account_src_id) {
+            setAccountId(initialData.account_src_id);
+          } else if (resAcc.data.length > 0) {
+            setAccountId(resAcc.data[0].id);
+          }
+        }
+        if (resCat.status === 'success' && Array.isArray(resCat.data)) {
+          setCategories(resCat.data);
+          if (initialData?.category_id) {
+            setCategoryId(initialData.category_id);
+          }
+        }
+      };
+      loadData();
+      
+      if (initialData) {
+        setTxType((initialData.tx_type || 'Expense') as TxType);
+        setAmount(formatRupiah(initialData.amount?.toString() || '0'));
+        setNote(initialData.note || '');
+        setTxDate(initialData.tx_date || new Date().toISOString().split('T')[0]);
+      } else {
+        setTxType('Expense');
+        setAmount('');
+        setNote('');
+        setTxDate(new Date().toISOString().split('T')[0]);
+      }
     }
-  }, [initialData, isOpen]);
+  }, [initialData, isOpen, token]);
+
+  const filteredCategories = categories.filter(c => (c.category_type || c.type) === txType);
+
+  useEffect(() => {
+    if (filteredCategories.length > 0 && !filteredCategories.find(c => c.id === categoryId)) {
+      setCategoryId(filteredCategories[0].id);
+    }
+  }, [txType, categories, categoryId, filteredCategories]);
 
   if (!isOpen) return null;
 
@@ -51,7 +84,7 @@ export default function TransactionModal({ isOpen, onClose, onRefresh, initialDa
       note: note,
       tx_date: txDate,
       account_src_id: accountId,
-      category_id: 'CAT-123', // demo default
+      category_id: categoryId,
     };
 
     const action = initialData ? 'UPDATE_TRANSACTION' : 'CREATE_TRANSACTION';
@@ -79,9 +112,9 @@ export default function TransactionModal({ isOpen, onClose, onRefresh, initialDa
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end lg:items-center justify-center p-4 sm:p-0">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}></div>
-      <div className="relative w-full max-w-lg bg-surface border border-white/10 rounded-t-3xl lg:rounded-3xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-10 lg:slide-in-from-bottom-0 lg:zoom-in-95 duration-200">
+      <div className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto bg-surface border border-white/10 rounded-3xl shadow-2xl animate-in zoom-in-95 duration-200">
         
         <div className="flex items-center justify-between p-6 border-b border-white/5">
           <h2 className="text-xl font-bold">{initialData ? 'Edit Transaksi' : 'Catat Transaksi'}</h2>
@@ -100,7 +133,7 @@ export default function TransactionModal({ isOpen, onClose, onRefresh, initialDa
                 className={cn(
                   "flex-1 py-2 text-sm font-medium rounded-lg transition-all flex items-center justify-center gap-2",
                   txType === type ? 
-                    (type === 'Expense' ? "bg-negative text-white" : type === 'Income' ? "bg-[var(--color-stabilo)] text-black" : "bg-primary text-white") 
+                    "bg-[var(--color-stabilo)] text-white shadow-[0_4px_12px_rgba(204,255,0,0.2)]" 
                     : "text-[var(--color-text-muted)] hover:text-[var(--color-text-foreground)]"
                 )}
               >
@@ -147,25 +180,47 @@ export default function TransactionModal({ isOpen, onClose, onRefresh, initialDa
                       value={accountId}
                       onChange={(e) => setAccountId(e.target.value)}
                       className="w-full bg-surface-light border border-black/5 dark:border-white/5 rounded-xl py-3 pl-10 pr-4 text-sm text-[var(--color-text-foreground)] focus:outline-none focus:border-[var(--color-stabilo)] appearance-none"
+                      required
                     >
-                      <option value="Bank BCA">Bank BCA</option>
-                      <option value="GoPay">GoPay</option>
+                      {accounts.length === 0 && <option value="">Buat rekening dulu</option>}
+                      {accounts.map(acc => (
+                        <option key={acc.id} value={acc.id}>{acc.account_name}</option>
+                      ))}
                     </select>
                   </div>
                </div>
             </div>
 
-            <div>
-              <label className="text-sm text-slate-400 block mb-2">Catatan</label>
-              <div className="relative">
-                <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <input
-                  type="text"
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  placeholder="Makan siang..."
-                  className="w-full bg-surface-light border border-white/5 rounded-xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:border-[var(--color-stabilo)]"
-                />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm text-slate-400 block mb-2">Kategori</label>
+                <div className="relative">
+                  <Tags className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <select
+                    value={categoryId}
+                    onChange={(e) => setCategoryId(e.target.value)}
+                    className="w-full bg-surface-light border border-black/5 dark:border-white/5 rounded-xl py-3 pl-10 pr-4 text-sm text-[var(--color-text-foreground)] focus:outline-none focus:border-[var(--color-stabilo)] appearance-none"
+                    required
+                  >
+                    {filteredCategories.length === 0 && <option value="">Buat kategori dulu</option>}
+                    {filteredCategories.map(cat => (
+                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="text-sm text-slate-400 block mb-2">Catatan</label>
+                <div className="relative">
+                  <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input
+                    type="text"
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    placeholder="Keterangan..."
+                    className="w-full bg-surface-light border border-black/5 dark:border-white/5 rounded-xl py-3 pl-10 pr-4 text-sm text-[var(--color-text-foreground)] focus:outline-none focus:border-[var(--color-stabilo)] transition-all"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -173,7 +228,7 @@ export default function TransactionModal({ isOpen, onClose, onRefresh, initialDa
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-[var(--color-stabilo)] hover:bg-[#b3e600] text-black font-medium py-4 rounded-xl transition-all shadow-[0_0_15px_rgba(204,255,0,0.2)] disabled:opacity-70"
+            className="w-full bg-[var(--color-stabilo)] hover:bg-[#b3e600] text-white font-medium py-4 rounded-xl transition-all shadow-[0_0_15px_rgba(204,255,0,0.2)] disabled:opacity-70"
           >
             {isSubmitting ? 'Menyimpan...' : 'Simpan Transaksi'}
           </button>

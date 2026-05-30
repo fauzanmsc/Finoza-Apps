@@ -15,15 +15,17 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [imgError, setImgError] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isOpen) {
       setFullName(user?.full_name || '');
-      setPreviewUrl(user?.profile_picture_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.full_name || 'Budi'}`);
+      setPreviewUrl(user?.profile_picture_url || null);
       setSelectedFile(null);
       setErrorMsg('');
+      setImgError(false);
     }
   }, [isOpen, user]);
 
@@ -47,6 +49,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
     const reader = new FileReader();
     reader.onloadend = () => {
       setPreviewUrl(reader.result as string);
+      setImgError(false);
     };
     reader.readAsDataURL(file);
   };
@@ -103,14 +106,18 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           <div className="flex flex-col items-center justify-center space-y-4">
             <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-              <img 
-                src={previewUrl || ''} 
-                alt="Profile Preview" 
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.full_name || 'Budi'}`;
-                }}
-                className="w-24 h-24 rounded-full object-cover border-4 border-black/5 dark:border-white/10 bg-slate-800"
-              />
+              {previewUrl && !imgError && previewUrl !== 'null' ? (
+                <img 
+                  src={previewUrl} 
+                  alt="Profile Preview" 
+                  onError={() => setImgError(true)}
+                  className="w-24 h-24 rounded-full object-cover border-4 border-black/5 dark:border-white/10 bg-slate-800"
+                />
+              ) : (
+                <div className="w-24 h-24 rounded-full border-4 border-black/5 dark:border-white/10 bg-black/10 dark:bg-white/10 flex items-center justify-center">
+                  <User className="w-10 h-10 text-slate-400" />
+                </div>
+              )}
               <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                 <Camera className="w-6 h-6 text-white" />
               </div>

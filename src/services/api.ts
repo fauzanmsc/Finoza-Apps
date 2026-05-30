@@ -22,6 +22,13 @@ let mockDebts = [
   { id: '2', name: 'Siska', type: 'Piutang (Dia Berhutang)', amount: 1200000, due: '2023-07-30', status: 'Overdue' },
 ];
 
+let mockCategories = [
+  { id: '1', name: 'Makanan & Minuman', category_type: 'Expense', icon_name: 'pizza', color_hex: '#F43F5E' },
+  { id: '2', name: 'Transportasi', category_type: 'Expense', icon_name: 'car', color_hex: '#EAB308' },
+  { id: '3', name: 'Gaji', category_type: 'Income', icon_name: 'briefcase', color_hex: '#10B981' },
+  { id: '4', name: 'Transfer Masuk', category_type: 'Transfer', icon_name: 'arrow-down-left', color_hex: '#3B82F6' },
+];
+
 export async function fetchApi(action: string, payload: any = {}, authToken?: string) {
   if (!API_URL) {
     console.warn("VITE_API_URL is not defined! Using mock responses for", action);
@@ -62,6 +69,15 @@ function handleMockApi(action: string, payload: any = {}) {
           data: {
             authToken: 'MOCK-TOKEN-123',
             user: { full_name: 'Mock User', email: 'mock@moniq.com', currency: 'IDR' }
+          }
+        });
+      } else if (action === 'UPDATE_PROFILE') {
+        resolve({
+          status: 'success',
+          message: 'Profile updated',
+          data: {
+            full_name: payload.full_name,
+            profile_picture_url: payload.base64_image ? 'data:image/png;base64,...' : undefined
           }
         });
       } else if (action === 'GET_DASHBOARD_DATA') {
@@ -156,6 +172,20 @@ function handleMockApi(action: string, payload: any = {}) {
         resolve({ status: 'success', message: 'Success', data: payload });
       } else if (action === 'DELETE_DEBT') {
         mockDebts = mockDebts.filter(d => d.id !== payload.id);
+        resolve({ status: 'success', message: 'Success', data: {} });
+        
+      // CATEGORIES CRUD
+      } else if (action === 'GET_CATEGORIES') {
+        resolve({ status: 'success', data: mockCategories });
+      } else if (action === 'CREATE_CATEGORY') {
+        const newCat = { ...payload, id: generateId() };
+        mockCategories.push(newCat);
+        resolve({ status: 'success', message: 'Success', data: newCat });
+      } else if (action === 'UPDATE_CATEGORY') {
+        mockCategories = mockCategories.map(c => c.id === payload.id ? { ...c, ...payload } : c);
+        resolve({ status: 'success', message: 'Success', data: payload });
+      } else if (action === 'DELETE_CATEGORY') {
+        mockCategories = mockCategories.filter(c => c.id !== payload.id);
         resolve({ status: 'success', message: 'Success', data: {} });
         
       } else {

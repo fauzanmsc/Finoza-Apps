@@ -1,12 +1,12 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  ArrowLeftRight, 
-  WalletCards, 
-  FileText, 
-  PieChart, 
-  Users, 
-  BarChart3, 
+import {
+  LayoutDashboard,
+  ArrowLeftRight,
+  WalletCards,
+  FileText,
+  PieChart,
+  Users,
+  BarChart3,
   Settings,
   LogOut,
   Sun,
@@ -15,7 +15,9 @@ import {
   ChevronRight,
   ChevronDown,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  Tags,
+  User
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useAuth } from '../../store/useAuth';
@@ -36,6 +38,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
   const [isTransactionsOpen, setIsTransactionsOpen] = useState(false);
   const [transactionModalType, setTransactionModalType] = useState<string | null>(null);
   const navigate = useNavigate();
+  const [imgError, setImgError] = useState(false);
 
   const handleLogoutConfirm = () => {
     setIsLogoutDialogOpen(false);
@@ -47,10 +50,11 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
     { icon: ArrowLeftRight, label: 'Transaksi', path: '/transactions' },
     { icon: WalletCards, label: 'Aset & Rekening', path: '/accounts' },
-    { icon: FileText, label: 'Jurnal Lengkap', path: '/journal' },
+    { icon: FileText, label: 'Jurnal', path: '/journal' },
     { icon: PieChart, label: 'Anggaran Bulanan', path: '/budget' },
     { icon: Users, label: 'Hutang Piutang', path: '/debts' },
     { icon: BarChart3, label: 'Laporan Bulanan', path: '/reports' },
+    { icon: Tags, label: 'Kategori', path: '/categories' },
     { icon: Settings, label: 'Pengaturan', path: '/settings' },
   ];
 
@@ -58,12 +62,19 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
     <>
       <aside className={`h-full flex flex-col py-6 bg-surface transition-all duration-300 ${isSidebarCompact ? 'px-2' : 'px-4'}`}>
         {/* Header / Logo */}
-        <div className={`flex items-center gap-3 mb-10 transition-all ${isSidebarCompact ? 'justify-center px-0' : 'px-2'}`}>
-          <img 
-            src={isSidebarCompact ? "/favicon.png" : (theme === 'dark' ? "/logo-finoza-light.png" : "/logo-finoza-dark.png")} 
-            alt="Finoza Apps" 
-            className={`object-contain transition-all duration-300 ${isSidebarCompact ? 'h-8 w-8' : 'h-10'}`} 
+        <div className={`flex items-center mb-10 transition-all ${isSidebarCompact ? 'flex-col gap-4 px-0' : 'justify-between px-2'}`}>
+          <img
+            src={isSidebarCompact ? "/favicon.png" : (theme === 'dark' ? "/logo-finoza-light.png" : "/logo-finoza-dark.png")}
+            alt="Finoza Apps"
+            className={`object-contain transition-all duration-300 ${isSidebarCompact ? 'h-8 w-8' : 'h-8'}`}
           />
+          <button
+            onClick={toggleSidebarCompact}
+            className="hidden lg:flex p-1.5 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors text-[var(--color-text-foreground)] items-center justify-center flex-shrink-0"
+            title={isSidebarCompact ? "Expand Sidebar" : "Compact Sidebar"}
+          >
+            {isSidebarCompact ? <PanelLeftOpen className="w-4 h-4 text-slate-400" /> : <PanelLeftClose className="w-4 h-4 text-slate-400" />}
+          </button>
         </div>
 
         {/* Navigation */}
@@ -88,7 +99,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
                       item.isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />
                     )}
                   </button>
-                  
+
                   {/* Dropdown Items */}
                   {item.isOpen && !isSidebarCompact && item.subItems && (
                     <div className="pl-11 pr-3 space-y-1 mt-1 animate-[fadeIn_0.2s_ease-out]">
@@ -115,8 +126,8 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
                 className={({ isActive }) => cn(
                   "flex items-center gap-3 py-3 rounded-xl transition-all duration-200 text-sm font-medium",
                   isSidebarCompact ? "justify-center px-0" : "px-3",
-                  isActive 
-                    ? "bg-[var(--color-stabilo)]/10 text-[var(--color-stabilo)]" 
+                  isActive
+                    ? "bg-[var(--color-stabilo)]/10 text-[var(--color-stabilo)]"
                     : "text-[var(--color-text-muted)] hover:text-[var(--color-text-foreground)] hover:bg-black/5 dark:hover:bg-white/5"
                 )}
                 title={isSidebarCompact ? item.label : undefined}
@@ -130,23 +141,9 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
 
         {/* Footer Actions */}
         <div className="mt-auto pt-4 space-y-2">
-          {/* Toggle Sidebar Size (Desktop Only) */}
-          <div className="hidden lg:block px-2">
-            <button
-              onClick={toggleSidebarCompact}
-              className={cn(
-                "w-full flex items-center p-3 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors text-sm font-medium text-[var(--color-text-foreground)]",
-                isSidebarCompact ? "justify-center" : "gap-3"
-              )}
-              title={isSidebarCompact ? "Expand Sidebar" : "Compact Sidebar"}
-            >
-              {isSidebarCompact ? <PanelLeftOpen className="w-4 h-4 text-slate-400" /> : <PanelLeftClose className="w-4 h-4 text-slate-400" />}
-              {!isSidebarCompact && <span>Collapse</span>}
-            </button>
-          </div>
 
           <div className="px-2">
-            <button 
+            <button
               onClick={toggleTheme}
               className={cn(
                 "w-full flex items-center p-3 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors text-sm font-medium text-[var(--color-text-foreground)]",
@@ -166,27 +163,33 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
             </button>
           </div>
 
-          <div 
+          <div
             className={cn(
               "flex items-center cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 p-2 rounded-xl transition-colors relative group",
               isSidebarCompact ? "justify-center" : "gap-3 px-2"
             )}
             onClick={() => setIsProfileModalOpen(true)}
           >
-            <img 
-              src={user?.profile_picture_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.full_name || 'User'}`} 
-              alt="Profile" 
-              onError={(e) => { (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.full_name || 'User'}`; }}
-              className="w-10 h-10 rounded-full object-cover bg-slate-800 flex-shrink-0" 
-            />
+            {user?.profile_picture_url && !imgError && user.profile_picture_url !== 'null' ? (
+              <img 
+                src={user.profile_picture_url} 
+                alt="Profile" 
+                onError={() => setImgError(true)}
+                className="w-10 h-10 rounded-full object-cover bg-slate-800 flex-shrink-0" 
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center flex-shrink-0">
+                <User className="w-5 h-5 text-slate-500" />
+              </div>
+            )}
             {!isSidebarCompact && (
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-[var(--color-text-foreground)] truncate">{user?.full_name || 'User'}</p>
                 <p className="text-[10px] text-[var(--color-text-muted)] truncate">{user?.email}</p>
               </div>
             )}
-            
-            <button 
+
+            <button
               onClick={(e) => { e.stopPropagation(); setIsLogoutDialogOpen(true); }}
               className={cn(
                 "p-2 hover:bg-negative/20 hover:text-negative rounded-lg transition-colors",
@@ -201,12 +204,12 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
       </aside>
 
       <ProfileModal isOpen={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)} />
-      
+
       {/* Transaction Modal triggered from Sidebar Submenu */}
-      <TransactionModal 
-        isOpen={transactionModalType !== null} 
-        onClose={() => setTransactionModalType(null)} 
-        onRefresh={() => window.location.reload()} 
+      <TransactionModal
+        isOpen={transactionModalType !== null}
+        onClose={() => setTransactionModalType(null)}
+        onRefresh={() => window.location.reload()}
         initialData={transactionModalType ? { tx_type: transactionModalType } : null}
       />
 
@@ -220,7 +223,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
             </div>
             <h3 className="text-xl font-bold text-[var(--color-text-foreground)] mb-2">Keluar dari Finoza Apps?</h3>
             <p className="text-sm text-[var(--color-text-muted)] mb-8">Sesi Anda akan berakhir dan Anda harus login kembali untuk mengakses dashboard.</p>
-            
+
             <div className="flex gap-3">
               <button
                 onClick={() => setIsLogoutDialogOpen(false)}

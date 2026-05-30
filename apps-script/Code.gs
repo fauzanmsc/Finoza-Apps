@@ -26,6 +26,9 @@ function doPost(e) {
       case "GENERATE_DUMMY_DATA": response = handleGenerateDummyData(authToken); break;
       
       case "GET_CATEGORIES": response = handleGetCategories(authToken); break;
+      case "CREATE_CATEGORY": response = handleCreateCategory(authToken, payload); break;
+      case "UPDATE_CATEGORY": response = handleGenericUpdate("tb_categories", payload.id, payload, authToken); break;
+      case "DELETE_CATEGORY": response = handleGenericDelete("tb_categories", payload.id, authToken); break;
 
       // TRANSACTIONS
       case "GET_TRANSACTIONS": response = handleGetTransactions(authToken); break;
@@ -245,6 +248,16 @@ function handleCreateAccount(authToken, payload) {
 function handleGetCategories(authToken) {
   const sheet = getSheet("tb_categories");
   return createSuccessResponse(200, "Categories retrieved", mapIdField(getRowsData(sheet).filter(r => r.user_id === authToken)));
+}
+
+function handleCreateCategory(authToken, payload) {
+  if (!authToken) return createErrorResponse(401, "Unauthorized");
+  const sheet = getSheet("tb_categories");
+  const newId = 'CAT-' + generateUUID().substring(0,8);
+  sheet.appendRow([
+    newId, authToken, payload.category_type || 'Expense', payload.name || '', payload.color_hex || '#F43F5E', payload.icon_name || 'tags'
+  ]);
+  return createSuccessResponse(201, "Category created", { ...payload, id: newId });
 }
 
 // TRANSACTIONS

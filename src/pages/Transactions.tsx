@@ -67,10 +67,10 @@ export default function Transactions() {
 
   return (
     <div className="p-4 lg:p-8 w-full max-w-5xl mx-auto space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <h2 className="text-2xl font-bold">Jurnal Lengkap</h2>
         
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <div className="relative flex-1 sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input 
@@ -106,6 +106,13 @@ export default function Transactions() {
               </div>
             )}
           </div>
+          
+          <button 
+            onClick={() => { setEditingTx(null); setIsModalOpen(true); }}
+            className="bg-[var(--color-stabilo)] hover:bg-[#b3e600] text-white px-4 py-2 rounded-xl flex items-center gap-2 text-sm font-bold transition-colors shadow-[0_0_15px_rgba(204,255,0,0.2)] whitespace-nowrap"
+          >
+            <span className="text-lg leading-none">+</span> Catat Transaksi
+          </button>
         </div>
       </div>
 
