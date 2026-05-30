@@ -61,22 +61,22 @@ export default function Debts() {
   const totalPiutang = debts.filter(d => (d.type || '').includes('Piutang') && d.status !== 'Paid').reduce((acc, curr) => acc + Number(curr.amount || 0), 0);
 
   return (
-    <div className="p-4 lg:p-8 w-full max-w-5xl mx-auto space-y-8">
+    <div className="p-4 lg:p-8 w-full max-w-5xl mx-auto space-y-6 lg:space-y-8">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Hutang & Piutang</h2>
-        <button onClick={openCreateModal} className="bg-[var(--color-stabilo)] hover:bg-[#b3e600] text-black px-4 py-2 rounded-xl flex items-center gap-2 text-sm font-medium transition-colors shadow-[0_0_15px_rgba(204,255,0,0.2)]">
-          <Plus className="w-4 h-4" /> Catat Baru
+        <h2 className="text-xl lg:text-2xl font-bold">Hutang & Piutang</h2>
+        <button onClick={openCreateModal} className="bg-[var(--color-stabilo)] hover:bg-[#b3e600] text-black px-3 lg:px-4 py-1.5 lg:py-2 rounded-xl flex items-center gap-2 text-xs lg:text-sm font-medium transition-colors shadow-[0_0_15px_rgba(204,255,0,0.2)]">
+          <Plus className="w-4 h-4" /> <span className="hidden sm:inline">Catat Baru</span><span className="sm:hidden">Catat</span>
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="glass p-6 rounded-2xl border-t-4 border-negative">
-          <p className="text-slate-400 mb-1">Total Hutang Saya</p>
-          <p className="text-3xl font-bold text-negative">{formatRp(totalHutang)}</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+        <div className="glass p-4 lg:p-6 rounded-2xl border-t-4 border-negative">
+          <p className="text-[10px] lg:text-sm text-slate-400 mb-0.5 lg:mb-1">Total Hutang Saya</p>
+          <p className="text-2xl lg:text-3xl font-bold text-negative">{formatRp(totalHutang)}</p>
         </div>
-        <div className="glass p-6 rounded-2xl border-t-4 border-[var(--color-stabilo)]">
-          <p className="text-slate-400 mb-1">Total Piutang (Uang Saya di Orang)</p>
-          <p className="text-3xl font-bold text-[var(--color-stabilo)]">{formatRp(totalPiutang)}</p>
+        <div className="glass p-4 lg:p-6 rounded-2xl border-t-4 border-[var(--color-stabilo)]">
+          <p className="text-[10px] lg:text-sm text-slate-400 mb-0.5 lg:mb-1">Total Piutang (Uang Saya di Orang)</p>
+          <p className="text-2xl lg:text-3xl font-bold text-[var(--color-stabilo)]">{formatRp(totalPiutang)}</p>
         </div>
       </div>
 
@@ -88,28 +88,28 @@ export default function Debts() {
         ) : (
           <div className="divide-y divide-white/5">
             {debts.map((d, i) => (
-              <div key={i} className="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-white/5 transition-colors">
-                <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center bg-surface-light ${d.status === 'Overdue' ? 'text-negative border border-negative/30' : d.status === 'Paid' ? 'text-slate-500' : 'text-[var(--color-stabilo)]'}`}>
-                    {d.status === 'Paid' ? <CheckCircle2 className="w-6 h-6" /> : <Users className="w-6 h-6" />}
+              <div key={i} className="p-4 lg:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 lg:gap-4 hover:bg-white/5 transition-colors">
+                <div className="flex items-center gap-3 lg:gap-4">
+                  <div className={`w-10 h-10 lg:w-12 lg:h-12 rounded-full flex items-center justify-center bg-surface-light ${d.status === 'Overdue' ? 'text-negative border border-negative/30' : d.status === 'Paid' ? 'text-slate-500' : 'text-[var(--color-stabilo)]'}`}>
+                    {d.status === 'Paid' ? <CheckCircle2 className="w-5 lg:w-6 h-5 lg:h-6" /> : <Users className="w-5 lg:w-6 h-5 lg:h-6" />}
                   </div>
                   <div>
-                    <h3 className={`font-bold text-lg ${d.status === 'Paid' ? 'line-through text-slate-500' : ''}`}>{d.name}</h3>
-                    <div className="flex items-center gap-2 text-xs text-slate-400 mt-1">
+                    <h3 className={`font-bold text-base lg:text-lg ${d.status === 'Paid' ? 'line-through text-slate-500' : ''}`}>{d.name}</h3>
+                    <div className="flex items-center gap-2 text-[10px] lg:text-xs text-slate-400 mt-1">
                       <span className={(d.type || '').includes('Piutang') ? (d.status === 'Paid' ? 'text-slate-500' : 'text-[var(--color-stabilo)]') : 'text-negative'}>{d.type}</span>
-                      <span>•</span>
-                      <Clock className="w-3 h-3" />
+                      <span className="hidden sm:inline">•</span>
+                      <Clock className="w-3 h-3 hidden sm:block" />
                       <span className={d.status === 'Overdue' ? 'text-negative font-medium' : ''}>Jatuh tempo: {d.due}</span>
-                      {d.status === 'Paid' && <span className="ml-2 px-2 py-0.5 bg-white/10 rounded-full text-slate-300">Lunas</span>}
+                      {d.status === 'Paid' && <span className="ml-1 lg:ml-2 px-1.5 lg:px-2 py-0.5 bg-white/10 rounded-full text-slate-300">Lunas</span>}
                     </div>
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-4 text-left sm:text-right sm:pl-0 pl-16">
+                <div className="flex items-center gap-3 lg:gap-4 text-left sm:text-right sm:pl-0 pl-12 lg:pl-16">
                   <div>
-                    <p className={`text-xl font-bold ${d.status === 'Paid' ? 'text-slate-500 line-through' : ''}`}>{formatRp(d.amount)}</p>
+                    <p className={`text-lg lg:text-xl font-bold ${d.status === 'Paid' ? 'text-slate-500 line-through' : ''}`}>{formatRp(d.amount)}</p>
                     {d.status === 'Overdue' && (
-                      <p className="text-xs text-negative flex items-center gap-1 sm:justify-end mt-1">
+                      <p className="text-[10px] lg:text-xs text-negative flex items-center gap-1 sm:justify-end mt-1">
                         <AlertTriangle className="w-3 h-3" /> Terlambat
                       </p>
                     )}

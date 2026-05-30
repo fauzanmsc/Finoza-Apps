@@ -11,6 +11,8 @@
   --color-text-foreground: #ffffff;
   --color-text-muted: #94a3b8;
   --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
+  --animate-bounce-slow: bounce-slow 3s infinite ease-in-out;
+  --animate-progress-bar: progress-bar 2s ease-out forwards;
 }
 
 @layer base {
@@ -72,4 +74,28 @@ html, body, #root {
 
 /* Force all Loader2/spinner SVGs to stabilo color */
 .animate-spin { color: var(--color-stabilo) !important; }
+
+/* Stabilo button text color: white in light mode, dark navy in dark mode */
+.text-stabilo-btn {
+  color: #0f172a;
+}
+:root.light .text-stabilo-btn {
+  color: #ffffff;
+}
+
+@keyframes bounce-slow {
+  0%, 100% { transform: translateY(-5%); }
+  50% { transform: translateY(5%); }
+}
+
+@keyframes gradient-bg {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes progress-bar {
+  0% { width: 0%; opacity: 1; }
+  80% { width: 100%; opacity: 1; }
+  100% { width: 100%; opacity: 0; }
+}
 

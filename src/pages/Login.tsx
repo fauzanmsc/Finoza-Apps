@@ -73,10 +73,10 @@ export default function Login() {
             alt="Finoza Apps"
             className="h-16 md:h-20 object-contain mx-auto md:mx-0 mb-4"
           />
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-[var(--color-text-foreground)] tracking-tight leading-[1.1]">
-            Track <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-stabilo)] to-yellow-300">Smarter,</span> Grow Better
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-[var(--color-text-foreground)] tracking-tighter leading-tight antialiased">
+            Kelola <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-stabilo)] to-yellow-300 drop-shadow-sm">Cerdas,</span><br/>Finansial Bebas
           </h1>
-          <p className="text-slate-400 text-lg md:text-xl max-w-md mx-auto md:mx-0">
+          <p className="text-slate-400 text-base sm:text-lg md:text-xl max-w-md mx-auto md:mx-0 font-medium leading-relaxed antialiased">
             Platform manajemen finansial pintar untuk mengontrol aset, hutang, dan anggaran bulanan Anda.
           </p>
         </div>

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { X, User, Upload, Loader2, Camera } from 'lucide-react';
+import { X, User, Upload, Loader2, Camera, Lock } from 'lucide-react';
 import { fetchApi } from '../../services/api';
 import { useAuth } from '../../store/useAuth';
 
@@ -11,6 +11,7 @@ interface ProfileModalProps {
 export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
   const { user, setAuth, token } = useAuth();
   const [fullName, setFullName] = useState(user?.full_name || '');
+  const [password, setPassword] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -24,6 +25,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
       setFullName(user?.full_name || '');
       setPreviewUrl(user?.profile_picture_url || null);
       setSelectedFile(null);
+      setPassword('');
       setErrorMsg('');
       setImgError(false);
     }
@@ -71,6 +73,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
 
     const payload = {
       full_name: fullName,
+      ...(password && { password }),
       ...(base64_image && { base64_image })
     };
 
@@ -153,12 +156,26 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                 />
               </div>
             </div>
+
+            <div>
+              <label className="text-sm text-slate-400 block mb-2">Password Baru <span className="text-xs">(Kosongkan jika tidak diubah)</span></label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full bg-surface-light border border-black/5 dark:border-white/5 rounded-xl py-3 pl-10 pr-4 text-sm text-[var(--color-text-foreground)] focus:outline-none focus:border-[var(--color-stabilo)] transition-all"
+                />
+              </div>
+            </div>
           </div>
 
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full flex items-center justify-center gap-2 bg-[var(--color-stabilo)] hover:bg-[#b3e600] text-black font-medium py-4 rounded-xl transition-all shadow-[0_0_15px_rgba(204,255,0,0.2)] disabled:opacity-70"
+            className="w-full flex items-center justify-center gap-2 bg-[var(--color-stabilo)] hover:bg-[#b3e600] text-[#0f172a] font-medium py-4 rounded-xl transition-all shadow-[0_0_15px_rgba(204,255,0,0.2)] disabled:opacity-70"
           >
             {isSubmitting ? (
               <><Loader2 className="w-5 h-5 animate-spin" /> Menyimpan...</>

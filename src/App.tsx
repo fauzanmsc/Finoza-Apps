@@ -12,7 +12,8 @@ import Login from './pages/Login';
 import Categories from './pages/Categories';
 import { useAuth } from './store/useAuth';
 import { useTheme } from './store/useTheme';
-import React, { useEffect } from 'react';
+import SplashScreen from './components/SplashScreen';
+import React, { useEffect, useState } from 'react';
 
 // Protected Route Wrapper
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -25,13 +26,16 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 function App() {
   const initTheme = useTheme((state) => state.initTheme);
+  const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
     initTheme();
   }, [initTheme]);
 
   return (
-    <BrowserRouter>
+    <>
+      {showSplash && <SplashScreen onFinish={() => setShowSplash(false)} />}
+      <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
         
@@ -51,6 +55,7 @@ function App() {
         </Route>
       </Routes>
     </BrowserRouter>
+    </>
   );
 }
 

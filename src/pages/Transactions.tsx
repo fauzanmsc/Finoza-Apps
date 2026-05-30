@@ -68,7 +68,7 @@ export default function Transactions() {
   return (
     <div className="p-4 lg:p-8 w-full max-w-5xl mx-auto space-y-6">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <h2 className="text-2xl font-bold">Jurnal Lengkap</h2>
+        <h2 className="text-xl lg:text-2xl font-bold">Jurnal Lengkap</h2>
         
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative flex-1 sm:w-64">
@@ -107,10 +107,7 @@ export default function Transactions() {
             )}
           </div>
           
-          <button 
-            onClick={() => { setEditingTx(null); setIsModalOpen(true); }}
-            className="bg-[var(--color-stabilo)] hover:bg-[#b3e600] text-white px-4 py-2 rounded-xl flex items-center gap-2 text-sm font-bold transition-colors shadow-[0_0_15px_rgba(204,255,0,0.2)] whitespace-nowrap"
-          >
+          <button onClick={() => { setEditingTx(null); setIsModalOpen(true); }} className="bg-[var(--color-stabilo)] hover:bg-[#b3e600] text-stabilo-btn px-4 lg:px-6 py-2 lg:py-2.5 rounded-xl font-bold text-sm lg:text-base transition-colors shadow-[0_0_15px_rgba(204,255,0,0.3)] flex items-center gap-2">
             <span className="text-lg leading-none">+</span> Catat Transaksi
           </button>
         </div>
@@ -127,27 +124,27 @@ export default function Transactions() {
             {filteredTxs.map((tx: any, i: number) => {
               const menuId = tx.id || `idx-${i}`;
               return (
-              <div key={tx.id || i} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-6 hover:bg-white/5 transition-colors gap-4 relative">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-surface-light flex items-center justify-center flex-shrink-0">
-                    {tx.tx_type === 'Income' ? <ArrowUpRight className="w-5 h-5 text-positive" /> : 
-                     tx.tx_type === 'Transfer' ? <ArrowLeftRight className="w-5 h-5 text-primary" /> :
-                     <ArrowDownRight className="w-5 h-5 text-negative" />}
+              <div key={tx.id || i} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-5 hover:bg-white/5 transition-colors gap-3 lg:gap-4 relative">
+                <div className="flex items-center gap-3 lg:gap-4">
+                  <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-surface-light flex items-center justify-center flex-shrink-0">
+                    {tx.tx_type === 'Income' ? <ArrowUpRight className="w-4 lg:w-5 h-4 lg:h-5 text-positive" /> : 
+                     tx.tx_type === 'Transfer' ? <ArrowLeftRight className="w-4 lg:w-5 h-4 lg:h-5 text-primary" /> :
+                     <ArrowDownRight className="w-4 lg:w-5 h-4 lg:h-5 text-negative" />}
                   </div>
                   <div>
-                    <p className="font-medium text-lg">{tx.note || 'Transaksi'}</p>
-                    <p className="text-sm text-slate-400">
+                    <p className="font-medium text-base lg:text-lg leading-tight">{tx.note || 'Transaksi'}</p>
+                    <p className="text-[10px] lg:text-xs text-slate-400">
                       {new Date(tx.tx_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })} 
                       {tx.category_id && ` • ${tx.category_id}`}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-4 pl-16 sm:pl-0">
+                <div className="flex items-center gap-3 lg:gap-4 pl-12 lg:pl-0">
                   <div className="text-left sm:text-right flex-1">
-                    <p className={`font-bold text-lg ${tx.tx_type === 'Income' ? 'text-positive' : tx.tx_type === 'Transfer' ? 'text-primary' : 'text-negative'}`}>
+                    <p className={`font-bold text-base lg:text-lg ${tx.tx_type === 'Income' ? 'text-positive' : tx.tx_type === 'Transfer' ? 'text-primary' : 'text-negative'}`}>
                       {tx.tx_type === 'Income' ? '+' : tx.tx_type === 'Expense' ? '-' : ''}{formatRp(tx.amount)}
                     </p>
-                    <p className="text-xs text-slate-400">{tx.account_src_id}</p>
+                    <p className="text-[10px] lg:text-xs text-slate-400">{tx.account_src_id}</p>
                   </div>
                   <div className="relative">
                     <button onClick={() => setActiveMenuId(activeMenuId === menuId ? null : menuId)} className="p-2 hover:bg-white/10 rounded-full transition-colors text-slate-400 hover:text-white">

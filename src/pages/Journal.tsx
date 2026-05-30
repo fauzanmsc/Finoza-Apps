@@ -55,15 +55,15 @@ export default function Journal() {
   }
 
   return (
-    <div className="p-4 lg:p-8 w-full max-w-6xl mx-auto space-y-6">
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+    <div className="p-4 lg:p-8 w-full max-w-6xl mx-auto space-y-4 lg:space-y-6">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 lg:gap-4">
         <div>
-          <h2 className="text-2xl font-bold">Jurnal Keuangan</h2>
-          <p className="text-sm text-[var(--color-text-muted)]">Ringkasan transaksi dalam format debit dan kredit.</p>
+          <h2 className="text-xl lg:text-2xl font-bold">Jurnal Keuangan</h2>
+          <p className="text-[10px] lg:text-sm text-[var(--color-text-muted)]">Ringkasan transaksi dalam format debit dan kredit.</p>
         </div>
         
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 bg-surface-light border border-white/5 rounded-xl p-1">
+        <div className="flex flex-wrap items-center gap-2 lg:gap-3">
+          <div className="flex items-center gap-1 lg:gap-2 bg-surface-light border border-white/5 rounded-xl p-1">
             <div className="relative">
               <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input 
@@ -92,11 +92,11 @@ export default function Journal() {
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead>
               <tr className="bg-surface-light/50 text-[var(--color-text-muted)] border-b border-white/5">
-                <th className="px-6 py-4 font-semibold">Tanggal</th>
-                <th className="px-6 py-4 font-semibold">Keterangan / Kategori</th>
-                <th className="px-6 py-4 font-semibold">Rekening</th>
-                <th className="px-6 py-4 font-semibold text-right">Debit (Masuk)</th>
-                <th className="px-6 py-4 font-semibold text-right">Kredit (Keluar)</th>
+                <th className="px-4 py-3 lg:px-6 lg:py-4 font-semibold">Tanggal</th>
+                <th className="px-4 py-3 lg:px-6 lg:py-4 font-semibold">Keterangan / Kategori</th>
+                <th className="px-4 py-3 lg:px-6 lg:py-4 font-semibold">Rekening</th>
+                <th className="px-4 py-3 lg:px-6 lg:py-4 font-semibold text-right">Debit (Masuk)</th>
+                <th className="px-4 py-3 lg:px-6 lg:py-4 font-semibold text-right">Kredit (Keluar)</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
@@ -110,20 +110,20 @@ export default function Journal() {
               ) : (
                 filteredTxs.map((tx: any, i: number) => (
                   <tr key={tx.id || i} className="hover:bg-white/5 transition-colors">
-                    <td className="px-6 py-4 text-slate-300">
+                    <td className="px-4 py-3 lg:px-6 lg:py-4 text-slate-300">
                       {new Date(tx.tx_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-3 lg:px-6 lg:py-4">
                       <p className="font-medium text-[var(--color-text-foreground)]">{tx.note || 'Transaksi'}</p>
-                      {tx.category_id && <p className="text-xs text-[var(--color-text-muted)]">{tx.category_id}</p>}
+                      {tx.category_id && <p className="text-[10px] lg:text-xs text-[var(--color-text-muted)]">{tx.category_id}</p>}
                     </td>
-                    <td className="px-6 py-4 text-slate-300">
+                    <td className="px-4 py-3 lg:px-6 lg:py-4 text-slate-300">
                       {tx.account_src_id || '-'}
                     </td>
-                    <td className="px-6 py-4 text-right text-positive font-medium">
+                    <td className="px-4 py-3 lg:px-6 lg:py-4 text-right text-positive font-medium">
                       {tx.tx_type === 'Income' ? formatRp(tx.amount) : '-'}
                     </td>
-                    <td className="px-6 py-4 text-right text-negative font-medium">
+                    <td className="px-4 py-3 lg:px-6 lg:py-4 text-right text-negative font-medium">
                       {tx.tx_type === 'Expense' ? formatRp(tx.amount) : '-'}
                     </td>
                   </tr>
@@ -133,13 +133,13 @@ export default function Journal() {
             {filteredTxs.length > 0 && (
               <tfoot className="bg-surface-light border-t-2 border-[var(--color-stabilo)]/20">
                 <tr>
-                  <td colSpan={3} className="px-6 py-4 text-right font-bold text-[var(--color-text-foreground)]">
+                  <td colSpan={3} className="px-4 py-3 lg:px-6 lg:py-4 text-right font-bold text-[var(--color-text-foreground)]">
                     Total Periode Ini
                   </td>
-                  <td className="px-6 py-4 text-right font-bold text-positive text-base">
+                  <td className="px-4 py-3 lg:px-6 lg:py-4 text-right font-bold text-positive text-sm lg:text-base">
                     {formatRp(totalDebit)}
                   </td>
-                  <td className="px-6 py-4 text-right font-bold text-negative text-base">
+                  <td className="px-4 py-3 lg:px-6 lg:py-4 text-right font-bold text-negative text-sm lg:text-base">
                     {formatRp(totalKredit)}
                   </td>
                 </tr>

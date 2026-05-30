@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import { useState } from 'react';
-import { Menu, X, Sun, Moon } from 'lucide-react';
+import { AlignLeft, X, Sun, Moon } from 'lucide-react';
 import Sidebar from './Sidebar';
 import BottomNav from './BottomNav';
 import { useTheme } from '../../store/useTheme';
@@ -17,24 +17,24 @@ export default function AppLayout() {
       </div>
 
       {/* Mobile Sidebar Overlay */}
-      {isMobileSidebarOpen && (
-        <div className="lg:hidden fixed inset-0 z-[100]">
-          <div 
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-[fadeIn_0.2s_ease-out]" 
-            onClick={() => setIsMobileSidebarOpen(false)} 
-          />
-          <div className="absolute left-0 top-0 h-full w-72 bg-surface shadow-2xl animate-[slideInLeft_0.3s_ease-out] z-10">
-            {/* Close button */}
-            <button 
-              onClick={() => setIsMobileSidebarOpen(false)}
-              className="absolute top-4 right-4 z-20 p-2 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
-            >
-              <X className="w-5 h-5 text-[var(--color-text-muted)]" />
-            </button>
-            <Sidebar onNavigate={() => setIsMobileSidebarOpen(false)} />
-          </div>
+      <div 
+        className={`lg:hidden fixed inset-0 z-[100] pointer-events-none transition-all duration-300 ${isMobileSidebarOpen ? 'opacity-100' : 'opacity-0'}`}
+      >
+        <div 
+          className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${isMobileSidebarOpen ? 'pointer-events-auto' : 'pointer-events-none'}`} 
+          onClick={() => setIsMobileSidebarOpen(false)} 
+        />
+        <div className={`absolute left-0 top-0 h-full w-72 bg-surface shadow-2xl transition-transform duration-300 ease-in-out z-10 ${isMobileSidebarOpen ? 'translate-x-0 pointer-events-auto' : '-translate-x-full pointer-events-none'}`}>
+          {/* Close button */}
+          <button 
+            onClick={() => setIsMobileSidebarOpen(false)}
+            className="absolute top-4 right-4 z-20 p-2 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+          >
+            <X className="w-5 h-5 text-[var(--color-text-muted)]" />
+          </button>
+          <Sidebar onNavigate={() => setIsMobileSidebarOpen(false)} />
         </div>
-      )}
+      </div>
 
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col h-full overflow-hidden relative">
@@ -44,17 +44,17 @@ export default function AppLayout() {
             onClick={() => setIsMobileSidebarOpen(true)}
             className="p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
           >
-            <Menu className="w-6 h-6 text-[var(--color-text-foreground)]" />
+            <AlignLeft className="w-6 h-6 text-[var(--color-text-foreground)]" strokeWidth={2.5} />
           </button>
           <div className="flex items-center gap-2">
             <img 
               src={theme === 'dark' ? "/logo-finoza-light.png" : "/logo-finoza-dark.png"} 
               alt="Finoza Apps" 
-              className="h-6 object-contain" 
+              className="h-7 object-contain" 
             />
           </div>
           <button onClick={toggleTheme} className="p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
-            {theme === 'dark' ? <Sun className="w-5 h-5 text-amber-400" /> : <Moon className="w-5 h-5 text-slate-600" />}
+            {theme === 'dark' ? <Moon className="w-5 h-5 text-[var(--color-stabilo)]" fill="currentColor" /> : <Sun className="w-5 h-5 text-amber-400" />}
           </button>
         </div>
 
@@ -65,6 +65,7 @@ export default function AppLayout() {
 
       {/* Mobile Bottom Nav - Hidden on desktop */}
       <div className="lg:hidden fixed bottom-0 left-0 w-full z-50">
+        <div className="absolute bottom-full left-0 w-full h-12 bg-gradient-to-t from-background to-transparent pointer-events-none"></div>
         <BottomNav />
       </div>
 

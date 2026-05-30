@@ -24,6 +24,7 @@ function doPost(e) {
       case "UPDATE_PROFILE": response = handleUpdateProfile(authToken, payload); break;
       case "GET_DASHBOARD_DATA": response = handleGetDashboardData(authToken); break;
       case "GENERATE_DUMMY_DATA": response = handleGenerateDummyData(authToken); break;
+      case "GET_REPORTS": response = handleGetReports(authToken, payload); break;
       
       case "GET_CATEGORIES": response = handleGetCategories(authToken); break;
       case "CREATE_CATEGORY": response = handleCreateCategory(authToken, payload); break;
@@ -132,7 +133,7 @@ function handleGenericUpdate(sheetName, idValue, payload, authToken) {
   if (idColIndex === -1) return createErrorResponse(500, "ID column not found");
 
   for (let i = 1; i < data.length; i++) {
-    if (data[i][idColIndex] === idValue && data[i][userIdColIndex] === authToken) {
+    if (String(data[i][idColIndex]) === String(idValue) && String(data[i][userIdColIndex]) === String(authToken)) {
       let rowData = data[i];
       for (let key in payload) {
         let colIndex = headers.indexOf(key);
@@ -158,7 +159,7 @@ function handleGenericDelete(sheetName, idValue, authToken) {
   const userIdColIndex = headers.indexOf("user_id");
 
   for (let i = 1; i < data.length; i++) {
-    if (data[i][idColIndex] === idValue && data[i][userIdColIndex] === authToken) {
+    if (String(data[i][idColIndex]) === String(idValue) && String(data[i][userIdColIndex]) === String(authToken)) {
       sheet.deleteRow(i + 1);
       return createSuccessResponse(200, "Delete successful", {});
     }
@@ -230,7 +231,7 @@ function handleLogin(email, password) {
 // ACCOUNTS
 function handleGetAccounts(authToken) {
   const sheet = getSheet("tb_accounts");
-  return createSuccessResponse(200, "Accounts retrieved", mapIdField(getRowsData(sheet).filter(r => r.user_id === authToken)));
+  return createSuccessResponse(200, "Accounts retrieved", mapIdField(getRowsData(sheet).filter(r => String(r.user_id) === String(authToken))));
 }
 
 function handleCreateAccount(authToken, payload) {
@@ -247,7 +248,7 @@ function handleCreateAccount(authToken, payload) {
 // CATEGORIES
 function handleGetCategories(authToken) {
   const sheet = getSheet("tb_categories");
-  return createSuccessResponse(200, "Categories retrieved", mapIdField(getRowsData(sheet).filter(r => r.user_id === authToken)));
+  return createSuccessResponse(200, "Categories retrieved", mapIdField(getRowsData(sheet).filter(r => String(r.user_id) === String(authToken))));
 }
 
 function handleCreateCategory(authToken, payload) {
@@ -277,17 +278,17 @@ function handleCreateTransaction(authToken, payload) {
 
 function handleGetTransactions(authToken) {
   const sheet = getSheet("tb_transactions");
-  const txs = getRowsData(sheet).filter(r => r.user_id === authToken);
+  const txs = getRowsData(sheet).filter(r => String(r.user_id) === String(authToken));
   return createSuccessResponse(200, "Transactions retrieved", mapIdField(txs).reverse());
 }
 
 // BUDGETS
 function handleGetBudgets(authToken) {
   const sheet = getSheet("tb_budgets");
-  const budgets = mapIdField(getRowsData(sheet).filter(r => r.user_id === authToken));
+  const budgets = mapIdField(getRowsData(sheet).filter(r => String(r.user_id) === String(authToken)));
   
   const txSheet = getSheet("tb_transactions");
-  const txs = getRowsData(txSheet).filter(r => r.user_id === authToken && r.tx_type === 'Expense');
+  const txs = getRowsData(txSheet).filter(r => String(r.user_id) === String(authToken) && r.tx_type === 'Expense');
   
   const currentMonth = new Date().getMonth() + 1;
   const currentYear = new Date().getFullYear();
@@ -334,10 +335,16 @@ function handleUpdateProfile(authToken, payload) {
       const encoded = parts[1];
       const blob = Utilities.newBlob(Utilities.base64Decode(encoded), contentType, "Profile_" + authToken + "_" + new Date().getTime());
       
-      const folderId = "1PqRyiJvp2xdCPe92N3ngHraecMjqyTs3";
-      const folder = DriveApp.getFolderById(folderId);
+      const folders = DriveApp.getFoldersByName("Finoza_Profiles");
+      let folder;
+      if (folders.hasNext()) {
+        folder = folders.next();
+      } else {
+        folder = DriveApp.createFolder("Finoza_Profiles");
+        folder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      }
+      
       const file = folder.createFile(blob);
-      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
       profileUrl = "https://lh3.googleusercontent.com/d/" + file.getId();
     } catch(e) {
       return createErrorResponse(500, "Gagal mengunggah foto: " + e.message);
@@ -357,13 +364,17 @@ function handleUpdateProfile(authToken, payload) {
   }
 
   for (let i = 1; i < data.length; i++) {
-    if (data[i][idColIndex] === authToken) {
+    if (String(data[i][idColIndex]) === String(authToken)) {
       if (profileUrl) {
          sheet.getRange(i + 1, profilePicColIndex + 1).setValue(profileUrl);
       }
       if (payload.full_name) {
          const nameColIndex = headers.indexOf("full_name");
-         sheet.getRange(i + 1, nameColIndex + 1).setValue(payload.full_name);
+         if (nameColIndex !== -1) sheet.getRange(i + 1, nameColIndex + 1).setValue(payload.full_name);
+      }
+      if (payload.password) {
+         const passColIndex = headers.indexOf("password");
+         if (passColIndex !== -1) sheet.getRange(i + 1, passColIndex + 1).setValue(payload.password);
       }
       return createSuccessResponse(200, "Profil berhasil diperbarui", { profile_picture_url: profileUrl, full_name: payload.full_name });
     }
@@ -374,7 +385,7 @@ function handleUpdateProfile(authToken, payload) {
 // DEBTS
 function handleGetDebts(authToken) {
   const sheet = getSheet("tb_debts");
-  return createSuccessResponse(200, "Debts retrieved", mapIdField(getRowsData(sheet).filter(r => r.user_id === authToken)));
+  return createSuccessResponse(200, "Debts retrieved", mapIdField(getRowsData(sheet).filter(r => String(r.user_id) === String(authToken))));
 }
 
 function handleCreateDebt(authToken, payload) {
@@ -394,8 +405,8 @@ function handleGetDashboardData(authToken) {
   const txSheet = getSheet("tb_transactions");
   const accSheet = getSheet("tb_accounts");
   
-  const accounts = mapIdField(getRowsData(accSheet).filter(r => r.user_id === authToken));
-  const txs = mapIdField(getRowsData(txSheet).filter(r => r.user_id === authToken));
+  const accounts = mapIdField(getRowsData(accSheet).filter(r => String(r.user_id) === String(authToken)));
+  const txs = mapIdField(getRowsData(txSheet).filter(r => String(r.user_id) === String(authToken)));
 
   let netBalance = 0;
   let totalIncome = 0;
@@ -473,6 +484,50 @@ function handleGenerateDummyData(authToken) {
   if (!authToken) return createErrorResponse(401, "Unauthorized");
   // [Logic hidden for brevity as user wants CRUD to work, this isn't strictly necessary to rewrite if not broken]
   return createSuccessResponse(200, "Dummy data feature retained. For fresh starts.", null);
+}
+
+function handleGetReports(authToken, payload) {
+  if (!authToken) return createErrorResponse(401, "Unauthorized");
+  
+  const month = payload.month || new Date().getMonth() + 1;
+  const year = payload.year || new Date().getFullYear();
+  
+  const txSheet = getSheet("tb_transactions");
+  const txs = getRowsData(txSheet).filter(r => String(r.user_id) === String(authToken));
+  
+  let totalIncome = 0;
+  let totalExpense = 0;
+  const dailyData = {};
+  
+  txs.forEach(tx => {
+    const d = new Date(tx.tx_date);
+    if (d.getMonth() + 1 === month && d.getFullYear() === year) {
+       const day = d.getDate();
+       const amt = Number(tx.amount) || 0;
+       
+       if (!dailyData[day]) dailyData[day] = { income: 0, expense: 0, net: 0, transactions: [] };
+       
+       if (tx.tx_type === 'Income') {
+         dailyData[day].income += amt;
+         dailyData[day].net += amt;
+         totalIncome += amt;
+       } else if (tx.tx_type === 'Expense') {
+         dailyData[day].expense += amt;
+         dailyData[day].net -= amt;
+         totalExpense += amt;
+       }
+       dailyData[day].transactions.push(tx);
+    }
+  });
+
+  return createSuccessResponse(200, "Reports data retrieved", {
+    month: month,
+    year: year,
+    total_income: totalIncome,
+    total_expense: totalExpense,
+    net_income: totalIncome - totalExpense,
+    daily_data: dailyData
+  });
 }
 
 function createSuccessResponse(statusCode, message, data) {

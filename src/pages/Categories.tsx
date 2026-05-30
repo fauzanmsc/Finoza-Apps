@@ -127,26 +127,26 @@ export default function Categories() {
           const IconComponent = ICON_MAP[cat.icon_name || cat.icon] || Tags;
           const catColor = cat.color_hex || cat.color || '#F43F5E';
           return (
-            <div key={cat.id} className="group glass rounded-3xl p-5 relative overflow-hidden transition-all hover:scale-[1.02] hover:shadow-2xl hover:shadow-[var(--color-stabilo)]/10 cursor-pointer">
+            <div key={cat.id} className="group glass rounded-3xl p-4 lg:p-5 relative overflow-hidden transition-all hover:scale-[1.02] hover:shadow-2xl hover:shadow-[var(--color-stabilo)]/10 cursor-pointer">
               <div 
-                className="absolute top-0 right-0 w-24 h-24 rounded-full blur-3xl opacity-20 -mr-10 -mt-10 transition-all group-hover:opacity-40"
+                className="absolute top-0 right-0 w-16 h-16 lg:w-24 lg:h-24 rounded-full blur-2xl lg:blur-3xl opacity-20 -mr-6 -mt-6 lg:-mr-10 lg:-mt-10 transition-all group-hover:opacity-40"
                 style={{ backgroundColor: catColor }}
               />
               <div className="relative z-10 flex flex-col h-full">
-                <div className="flex justify-between items-start mb-4">
+                <div className="flex justify-between items-start mb-3 lg:mb-4">
                   <div 
-                    className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg"
+                    className="w-10 h-10 lg:w-12 lg:h-12 rounded-2xl flex items-center justify-center shadow-lg"
                     style={{ backgroundColor: `${catColor}20`, color: catColor }}
                   >
-                    <IconComponent className="w-6 h-6" />
+                    <IconComponent className="w-5 h-5 lg:w-6 lg:h-6" />
                   </div>
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex gap-1 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity">
                     <button onClick={(e) => { e.stopPropagation(); handleEdit(cat); }} className="p-1.5 hover:bg-white/10 rounded-lg text-slate-300 transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
                     <button onClick={(e) => { e.stopPropagation(); handleDelete(cat.id); }} className="p-1.5 hover:bg-negative/20 hover:text-negative rounded-lg text-slate-300 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
                   </div>
                 </div>
-                <h4 className="font-bold text-[var(--color-text-foreground)] mb-1 leading-tight">{cat.name}</h4>
-                <p className="text-xs text-[var(--color-text-muted)] mt-auto">{cat.category_type || cat.type}</p>
+                <h4 className="font-bold text-sm lg:text-base text-[var(--color-text-foreground)] mb-1 leading-tight">{cat.name}</h4>
+                <p className="text-[10px] lg:text-xs text-[var(--color-text-muted)] mt-auto">{cat.category_type || cat.type}</p>
               </div>
             </div>
           );
@@ -156,17 +156,17 @@ export default function Categories() {
   );
 
   return (
-    <div className="p-4 lg:p-8 w-full max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
+    <div className="p-4 lg:p-8 w-full max-w-7xl mx-auto space-y-6 lg:space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-extrabold tracking-tight">Kategori</h2>
-          <p className="text-[var(--color-text-muted)] mt-1">Atur kategori pengeluaran dan pemasukan Anda.</p>
+          <h2 className="text-2xl lg:text-3xl font-extrabold tracking-tight">Kategori</h2>
+          <p className="text-[10px] lg:text-sm text-[var(--color-text-muted)] mt-1">Atur kategori pengeluaran dan pemasukan Anda.</p>
         </div>
         <button 
           onClick={openNewModal}
-          className="bg-[var(--color-stabilo)] hover:bg-[#b3e600] text-black px-5 py-2.5 rounded-xl flex items-center gap-2 text-sm font-bold transition-all shadow-lg shadow-[var(--color-stabilo)]/20 hover:shadow-[var(--color-stabilo)]/40 hover:-translate-y-0.5 whitespace-nowrap"
+          className="bg-[var(--color-stabilo)] hover:bg-[#b3e600] text-black px-4 lg:px-5 py-2 lg:py-2.5 rounded-xl flex items-center gap-2 text-xs lg:text-sm font-bold transition-all shadow-lg shadow-[var(--color-stabilo)]/20 hover:shadow-[var(--color-stabilo)]/40 hover:-translate-y-0.5 whitespace-nowrap"
         >
-          <Plus className="w-5 h-5" /> Tambah Kategori
+          <Plus className="w-4 lg:w-5 h-4 lg:h-5" /> Tambah Kategori
         </button>
       </div>
 

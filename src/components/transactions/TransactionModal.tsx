@@ -132,9 +132,10 @@ export default function TransactionModal({ isOpen, onClose, onRefresh, initialDa
                 onClick={() => setTxType(type)}
                 className={cn(
                   "flex-1 py-2 text-sm font-medium rounded-lg transition-all flex items-center justify-center gap-2",
-                  txType === type ? 
-                    "bg-[var(--color-stabilo)] text-white shadow-[0_4px_12px_rgba(204,255,0,0.2)]" 
-                    : "text-[var(--color-text-muted)] hover:text-[var(--color-text-foreground)]"
+                  txType === type && type === 'Expense' && "bg-[#ef4444] text-white font-bold shadow-[0_4px_12px_rgba(239,68,68,0.3)]",
+                  txType === type && type === 'Income' && "bg-[#10b981] text-white font-bold shadow-[0_4px_12px_rgba(16,185,129,0.3)]",
+                  txType === type && type === 'Transfer' && "bg-[#38bdf8] text-white font-bold shadow-[0_4px_12px_rgba(56,189,248,0.3)]",
+                  txType !== type && "text-[var(--color-text-muted)] hover:text-[var(--color-text-foreground)]"
                 )}
               >
                 {type === 'Expense' && <ArrowDownRight className="w-4 h-4" />}
@@ -228,7 +229,7 @@ export default function TransactionModal({ isOpen, onClose, onRefresh, initialDa
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-[var(--color-stabilo)] hover:bg-[#b3e600] text-white font-medium py-4 rounded-xl transition-all shadow-[0_0_15px_rgba(204,255,0,0.2)] disabled:opacity-70"
+            className="w-full bg-[var(--color-stabilo)] hover:bg-[#b3e600] text-slate-900 font-bold py-4 rounded-xl transition-all shadow-[0_0_15px_rgba(204,255,0,0.2)] disabled:opacity-70"
           >
             {isSubmitting ? 'Menyimpan...' : 'Simpan Transaksi'}
           </button>

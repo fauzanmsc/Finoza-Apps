@@ -20,8 +20,8 @@ export default function BottomNav() {
 
   return (
     <>
-      <div className="relative pb-2 px-4 pt-1 flex justify-center">
-        <div className="bg-[#1A2634] rounded-[28px] px-3 py-2 flex items-center justify-between w-full max-w-[360px] shadow-2xl shadow-black/50 border border-white/5 relative">
+      <div className="relative pt-1 flex justify-center w-full">
+        <div className="bg-[#1A2634] rounded-t-[32px] px-6 pb-4 pt-2 flex items-center justify-between w-full shadow-[0_-10px_40px_rgba(0,0,0,0.3)] border-t border-white/5 relative">
           {/* Left 2 items */}
           {navItems.slice(0, 2).map((item) => (
             <NavLink 
@@ -43,10 +43,10 @@ export default function BottomNav() {
           ))}
 
           {/* Center FAB */}
-          <div className="relative -mt-6">
+          <div className="relative -mt-10">
             <button 
               onClick={() => setIsModalOpen(true)}
-              className="w-14 h-14 bg-[var(--color-stabilo)] rounded-2xl flex items-center justify-center text-black shadow-[0_4px_20px_rgba(204,255,0,0.4)] hover:scale-105 active:scale-95 transition-all border-4 border-[#111A24]"
+              className="w-14 h-14 bg-[var(--color-stabilo)] rounded-full flex items-center justify-center text-black shadow-[0_4px_20px_rgba(204,255,0,0.4)] hover:scale-105 active:scale-95 transition-all border-4 border-[#111A24]"
             >
               <Plus className="w-7 h-7 stroke-[2.5px]" />
             </button>

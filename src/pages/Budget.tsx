@@ -56,22 +56,22 @@ export default function Budget() {
   const totalPercent = totalLimit > 0 ? Math.min((totalUsed / totalLimit) * 100, 100).toFixed(0) : 0;
 
   return (
-    <div className="p-4 lg:p-8 w-full max-w-4xl mx-auto space-y-8">
+    <div className="p-4 lg:p-8 w-full max-w-4xl mx-auto space-y-6 lg:space-y-8">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Anggaran Bulanan</h2>
-        <button onClick={openCreateModal} className="bg-[var(--color-stabilo)] hover:bg-[#b3e600] text-black px-4 py-2 rounded-xl flex items-center gap-2 text-sm font-medium transition-colors shadow-[0_0_15px_rgba(204,255,0,0.2)]">
-          <Plus className="w-4 h-4" /> Buat Anggaran
+        <h2 className="text-xl lg:text-2xl font-bold">Anggaran Bulanan</h2>
+        <button onClick={openCreateModal} className="bg-[var(--color-stabilo)] hover:bg-[#b3e600] text-black px-3 lg:px-4 py-1.5 lg:py-2 rounded-xl flex items-center gap-2 text-xs lg:text-sm font-medium transition-colors shadow-[0_0_15px_rgba(204,255,0,0.2)]">
+          <Plus className="w-4 h-4" /> <span className="hidden sm:inline">Buat Anggaran</span><span className="sm:hidden">Buat</span>
         </button>
       </div>
 
-      <div className="glass p-8 rounded-3xl flex flex-col md:flex-row items-center gap-8 border border-white/5">
-        <div className="relative w-48 h-48 flex-shrink-0">
-          <svg className="w-full h-full transform -rotate-90">
-            <circle cx="96" cy="96" r="80" stroke="currentColor" strokeWidth="20" fill="transparent" className="text-white/5" />
+      <div className="glass p-5 lg:p-8 rounded-3xl flex flex-col md:flex-row items-center gap-6 lg:gap-8 border border-white/5">
+        <div className="relative w-32 h-32 lg:w-48 lg:h-48 flex-shrink-0">
+          <svg className="w-full h-full transform -rotate-90" viewBox="0 0 192 192">
+            <circle cx="96" cy="96" r="80" stroke="currentColor" strokeWidth="16" fill="transparent" className="text-white/5" />
             <circle 
               cx="96" cy="96" r="80" 
               stroke="currentColor" 
-              strokeWidth="20" 
+              strokeWidth="16" 
               fill="transparent" 
               strokeDasharray="502" 
               strokeDashoffset={502 - (502 * Number(totalPercent)) / 100} 
@@ -80,15 +80,15 @@ export default function Budget() {
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-3xl font-bold text-white">{totalPercent}%</span>
-            <span className="text-xs text-slate-400">Terpakai</span>
+            <span className="text-2xl lg:text-3xl font-bold text-white">{totalPercent}%</span>
+            <span className="text-[10px] lg:text-xs text-slate-400">Terpakai</span>
           </div>
         </div>
         
         <div className="flex-1 space-y-2 w-full text-center md:text-left">
-          <h3 className="text-xl font-bold">Anggaran Total Bulan Ini</h3>
-          <p className="text-slate-400 mb-4">Anda telah menghabiskan {formatRp(totalUsed)} dari total {formatRp(totalLimit)} anggaran bulan ini.</p>
-          <div className="inline-block px-4 py-2 rounded-lg bg-surface-light border border-white/5 text-sm font-medium text-[var(--color-stabilo)]">
+          <h3 className="text-lg lg:text-xl font-bold">Anggaran Total Bulan Ini</h3>
+          <p className="text-[10px] lg:text-sm text-slate-400 mb-4">Anda telah menghabiskan {formatRp(totalUsed)} dari total {formatRp(totalLimit)} anggaran bulan ini.</p>
+          <div className="inline-block px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg bg-surface-light border border-white/5 text-xs lg:text-sm font-medium text-[var(--color-stabilo)]">
             Tersisa {formatRp(Math.max(0, totalLimit - totalUsed))}
           </div>
         </div>
@@ -107,16 +107,16 @@ export default function Budget() {
             const isOver = (b.used || 0) > b.limit;
             
             return (
-              <div key={i} className="glass p-5 rounded-2xl transition-colors relative group">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-3 h-3 rounded-full ${b.color || 'bg-[var(--color-stabilo)]'}`}></div>
-                    <span className="font-medium text-white">{b.name}</span>
+              <div key={i} className="glass p-4 lg:p-5 rounded-2xl transition-colors relative group">
+                <div className="flex items-center justify-between mb-2 lg:mb-3">
+                  <div className="flex items-center gap-2 lg:gap-3">
+                    <div className={`w-2.5 h-2.5 lg:w-3 lg:h-3 rounded-full ${b.color || 'bg-[var(--color-stabilo)]'}`}></div>
+                    <span className="font-medium text-sm lg:text-base text-white">{b.name}</span>
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3 lg:gap-4">
                     <div className="text-right">
-                      <span className={`font-bold ${isOver ? 'text-negative' : 'text-white'}`}>{formatRp(b.used || 0)}</span>
-                      <span className="text-xs text-slate-400 ml-1">/ {formatRp(b.limit)}</span>
+                      <span className={`font-bold text-sm lg:text-base ${isOver ? 'text-negative' : 'text-white'}`}>{formatRp(b.used || 0)}</span>
+                      <span className="text-[10px] lg:text-xs text-slate-400 ml-1">/ {formatRp(b.limit)}</span>
                     </div>
                     
                     <div className="relative">

@@ -83,12 +83,12 @@ export default function Accounts() {
       </div>
 
       {/* Total Assets Summary */}
-      <div className="glass rounded-2xl p-5 lg:p-6 border border-white/10 relative overflow-hidden">
+      <div className="glass rounded-2xl p-4 lg:p-6 border border-white/10 relative overflow-hidden">
         <div className="absolute right-0 top-0 opacity-10 pointer-events-none">
-          <WalletCards className="w-24 lg:w-32 h-24 lg:h-32 -mr-6 -mt-6" />
+          <WalletCards className="w-20 lg:w-32 h-20 lg:h-32 -mr-4 lg:-mr-6 -mt-4 lg:-mt-6" />
         </div>
-        <p className="text-slate-400 mb-1 text-sm">Total Seluruh Aset</p>
-        <p className="text-3xl lg:text-5xl font-bold tracking-tight text-[var(--color-stabilo)] drop-shadow-md">
+        <p className="text-slate-400 mb-1 text-xs lg:text-sm">Total Seluruh Aset</p>
+        <p className="text-2xl lg:text-5xl font-bold tracking-tight text-[var(--color-stabilo)] drop-shadow-md">
           {formatRp(accounts.reduce((acc, curr) => acc + Number(curr.initial_balance), 0))}
         </p>
       </div>
@@ -100,18 +100,18 @@ export default function Accounts() {
           return (
             <div 
               key={i} 
-              className="glass rounded-2xl p-5 lg:p-6 flex flex-col justify-between h-44 lg:h-48 border-t-[6px] transition-all hover:-translate-y-1 relative cursor-pointer active:scale-[0.98]" 
+              className="glass rounded-2xl p-4 lg:p-6 flex flex-col justify-between h-36 lg:h-48 border-t-[4px] lg:border-t-[6px] transition-all hover:-translate-y-1 relative cursor-pointer active:scale-[0.98]" 
               style={{ borderTopColor: acc.color_hex || '#1E3A8A', zIndex: activeMenuId === acc.id ? 20 : 1 }}
               onClick={(e) => { e.stopPropagation(); setSelectedAccount(acc); setActiveMenuId(null); }}
             >
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center border border-white/5" style={{ backgroundColor: acc.color_hex ? acc.color_hex + '20' : '#1E3A8A20' }}>
-                    <IconComp className="w-5 h-5" style={{ color: acc.color_hex || '#94a3b8' }} />
+                <div className="flex items-center gap-2 lg:gap-3">
+                  <div className="w-8 lg:w-10 h-8 lg:h-10 rounded-xl flex items-center justify-center border border-white/5" style={{ backgroundColor: acc.color_hex ? acc.color_hex + '20' : '#1E3A8A20' }}>
+                    <IconComp className="w-4 lg:w-5 h-4 lg:h-5" style={{ color: acc.color_hex || '#94a3b8' }} />
                   </div>
                   <div>
-                    <h3 className="font-bold text-base lg:text-lg leading-tight">{acc.account_name}</h3>
-                    <p className="text-xs text-slate-400">{acc.account_type}</p>
+                    <h3 className="font-bold text-sm lg:text-lg leading-tight">{acc.account_name}</h3>
+                    <p className="text-[10px] lg:text-xs text-slate-400">{acc.account_type}</p>
                   </div>
                 </div>
                 <div className="relative">
@@ -137,8 +137,8 @@ export default function Accounts() {
                 </div>
               </div>
               <div>
-                <p className="text-sm text-slate-400 mb-1">Saldo Saat Ini</p>
-                <p className="text-xl lg:text-2xl font-bold tracking-tight">{formatRp(acc.initial_balance)}</p>
+                <p className="text-[10px] lg:text-sm text-slate-400 mb-0.5 lg:mb-1">Saldo Saat Ini</p>
+                <p className="text-lg lg:text-2xl font-bold tracking-tight">{formatRp(acc.initial_balance)}</p>
               </div>
             </div>
           );
@@ -157,22 +157,22 @@ export default function Accounts() {
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedAccount(null)} />
           <div className="relative w-full max-w-lg bg-surface border border-white/10 rounded-t-3xl lg:rounded-3xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col">
             {/* Header with account card */}
-            <div className="p-6 text-white relative" style={{ background: selectedAccount.color_hex || '#1E3A8A' }}>
-              <button onClick={() => setSelectedAccount(null)} className="absolute top-4 right-4 p-2 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-colors">
-                <X className="w-5 h-5 text-white" />
+            <div className="p-4 lg:p-6 text-white relative" style={{ background: selectedAccount.color_hex || '#1E3A8A' }}>
+              <button onClick={() => setSelectedAccount(null)} className="absolute top-3 right-3 lg:top-4 lg:right-4 p-2 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-colors">
+                <X className="w-4 lg:w-5 h-4 lg:h-5 text-white" />
               </button>
-              <div className="flex items-center gap-3 mb-4">
-                {(() => { const IC = getIcon(selectedAccount.icon_name); return <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center"><IC className="w-6 h-6" /></div>; })()}
+              <div className="flex items-center gap-2 lg:gap-3 mb-3 lg:mb-4">
+                {(() => { const IC = getIcon(selectedAccount.icon_name); return <div className="w-10 lg:w-12 h-10 lg:h-12 rounded-xl bg-white/20 flex items-center justify-center"><IC className="w-5 lg:w-6 h-5 lg:h-6" /></div>; })()}
                 <div>
-                  <h3 className="font-bold text-lg">{selectedAccount.account_name}</h3>
-                  <p className="text-white/60 text-sm">{selectedAccount.account_type}</p>
+                  <h3 className="font-bold text-base lg:text-lg">{selectedAccount.account_name}</h3>
+                  <p className="text-white/60 text-xs lg:text-sm">{selectedAccount.account_type}</p>
                 </div>
               </div>
-              <p className="text-3xl font-bold">{formatRp(selectedAccount.initial_balance)}</p>
+              <p className="text-2xl lg:text-3xl font-bold">{formatRp(selectedAccount.initial_balance)}</p>
             </div>
 
             {/* Transaction list */}
-            <div className="flex-1 overflow-y-auto p-6">
+            <div className="flex-1 overflow-y-auto p-4 lg:p-6">
               <h4 className="font-medium text-sm text-[var(--color-text-muted)] mb-4">Riwayat Transaksi</h4>
               <div className="space-y-3">
                 {getAccountTx(selectedAccount.id).length > 0 ? getAccountTx(selectedAccount.id).map((tx: any, i: number) => (

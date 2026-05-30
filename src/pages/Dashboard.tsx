@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Calendar, ChevronDown, MoreHorizontal, ArrowUpRight, ArrowDownRight, Wallet, Loader2, Plus, LineChart as LineChartIcon, User } from 'lucide-react';
+import { Calendar, ChevronDown, MoreHorizontal, ArrowUpRight, ArrowDownRight, Wallet, Loader2, Plus, LineChart as LineChartIcon, User, Eye, EyeOff } from 'lucide-react';
 import { AreaChart, Area, Tooltip, ResponsiveContainer, XAxis, YAxis, PieChart, Pie, Cell, Legend } from 'recharts';
 import TransactionModal from '../components/transactions/TransactionModal';
 import { fetchApi } from '../services/api';
@@ -11,8 +11,9 @@ export default function Dashboard() {
   const [data, setData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [allTransactions, setAllTransactions] = useState<any[]>([]);
-  const [periodFilter, setPeriodFilter] = useState('3months');
+  const [periodFilter, setPeriodFilter] = useState('weekly');
   const [imgError, setImgError] = useState(false);
+  const [showBalance, setShowBalance] = useState(true);
 
   const token = useAuth(state => state.token);
   const user = useAuth(state => state.user);
@@ -150,60 +151,78 @@ export default function Dashboard() {
       <div className="block lg:hidden px-4 pt-4 pb-28 w-full max-w-md mx-auto relative">
 
         {/* Header - compact */}
-        <div className="flex items-center justify-between mb-5">
-          <div className="flex items-center gap-3">
-            {user?.profile_picture_url && !imgError && user.profile_picture_url !== 'null' ? (
-              <img
-                src={user.profile_picture_url}
-                alt="Profile"
-                onError={() => setImgError(true)}
-                className="w-10 h-10 rounded-full object-cover bg-slate-800 border-2 border-white/5 flex-shrink-0"
-              />
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center flex-shrink-0 border-2 border-white/5">
-                <User className="w-5 h-5 text-slate-500" />
-              </div>
-            )}
-            <div className="min-w-0">
-              <h2 className="font-semibold text-base leading-tight truncate">Hai, {user?.full_name?.split(' ')[0] || 'User'}</h2>
-              <p className="text-slate-400 text-xs">Wallet • {user?.currency || 'IDR'}</p>
+        <div className="flex items-center gap-3 mb-6 bg-surface-dark/30 p-3 rounded-2xl border border-white/5">
+          {user?.profile_picture_url && !imgError && user?.profile_picture_url !== 'null' ? (
+            <img
+              src={user.profile_picture_url}
+              alt="Profile"
+              onError={() => setImgError(true)}
+              className="w-12 h-12 rounded-full object-cover bg-slate-800 border-2 border-[var(--color-stabilo)] flex-shrink-0"
+            />
+          ) : (
+            <div className="w-12 h-12 rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center flex-shrink-0 border-2 border-[var(--color-stabilo)]">
+              <User className="w-6 h-6 text-slate-500" />
             </div>
+          )}
+          <div className="min-w-0">
+            <h2 className="font-bold text-base leading-tight truncate text-[var(--color-text-foreground)]">Hai, {user?.full_name?.split(' ')[0] || 'User'}</h2>
+            <p className="text-slate-400 text-[10px]">{user?.currency || 'IDR'} Wallet</p>
           </div>
-          <button onClick={() => openModal()} className="w-10 h-10 bg-[var(--color-stabilo)] rounded-xl flex items-center justify-center text-white shadow-[0_0_12px_rgba(204,255,0,0.3)] flex-shrink-0">
-            <Plus className="w-5 h-5 stroke-[2.5px]" />
-          </button>
+        </div>
+
+        {/* Total balance card (Full Width) */}
+        <div className="w-full bg-[var(--color-stabilo)] rounded-2xl p-4 mb-4 shadow-[0_10px_30px_rgba(204,255,0,0.2)] relative">
+          <div className="flex justify-between items-start">
+            <p className="text-slate-900/70 font-medium text-xs">Total Saldo</p>
+            <button onClick={() => setShowBalance(!showBalance)} className="text-slate-900 p-1 bg-black/5 rounded-full hover:bg-black/10 transition-colors">
+              {showBalance ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+            </button>
+          </div>
+          <p className="text-2xl font-extrabold text-slate-900 tracking-tight mt-1">
+            {showBalance ? formatShort(data.net_balance) : '••••••••'}
+          </p>
+          <p className="text-slate-900/60 font-medium text-[10px]">
+            {showBalance ? formatRp(data.net_balance) : 'Rp •••••••'}
+          </p>
         </div>
 
         {/* Account Cards (horizontal scroll) */}
-        <div className="flex gap-3 overflow-x-auto pb-3 -mx-4 px-4 scrollbar-hide mb-5">
-          {/* Total balance card */}
-          <div className="min-w-[200px] bg-surface-dark rounded-2xl p-4 flex flex-col justify-between flex-shrink-0 border border-black/5 dark:border-white/5">
-            <p className="text-[var(--color-text-muted)] text-xs mb-1">Total Saldo</p>
-            <p className="text-2xl font-bold text-[var(--color-stabilo)] tracking-tight">{formatShort(data.net_balance)}</p>
-            <p className="text-[var(--color-text-muted)] text-[10px] mt-1">{formatRp(data.net_balance)}</p>
-          </div>
+        <div className="flex gap-3 overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide mb-2">
           {data.accounts?.map((acc: any, i: number) => (
-            <div key={i} className="min-w-[160px] rounded-2xl p-4 flex flex-col justify-between flex-shrink-0 border border-black/5 dark:border-white/5" style={{ background: acc.color_hex || '#1E3A8A' }}>
-              <p className="text-white/70 text-xs truncate">{acc.account_name}</p>
-              <p className="text-white font-bold text-lg mt-2">{formatShort(acc.initial_balance || 0)}</p>
-              <p className="text-white/40 text-[10px]">{acc.account_type}</p>
+            <div key={i} className="min-w-[130px] rounded-2xl p-3 flex flex-col justify-between flex-shrink-0 border border-white/10 shadow-lg text-white" style={{ background: acc.color_hex || '#1E3A8A' }}>
+              <p className="text-white/70 font-medium text-[10px] truncate">{acc.account_name}</p>
+              <p className="text-white font-bold text-base mt-2 mb-1">
+                {showBalance ? formatShort(acc.initial_balance || 0) : '••••••'}
+              </p>
+              <p className="text-white/50 text-[10px]">{acc.account_type}</p>
             </div>
           ))}
+          {(!data.accounts || data.accounts.length === 0) && (
+             <div className="min-w-[150px] rounded-2xl p-4 flex items-center justify-center flex-shrink-0 border border-dashed border-white/20">
+               <p className="text-xs text-slate-500">Belum ada rekening</p>
+             </div>
+          )}
         </div>
 
         {/* Quick Actions */}
         <div className="grid grid-cols-2 gap-3 mb-5">
-          <button onClick={() => openModal('Expense')} className="bg-surface rounded-2xl py-4 flex flex-col items-center gap-2 active:scale-95 transition-transform border border-black/5 dark:border-white/5">
-            <div className="w-10 h-10 rounded-full bg-negative/10 flex items-center justify-center">
-              <ArrowUpRight className="w-5 h-5 text-negative stroke-[2.5px]" />
+          <button onClick={() => openModal('Expense')} className="bg-surface rounded-2xl py-3 flex flex-col items-center gap-1.5 active:scale-95 transition-transform border border-black/5 dark:border-white/5">
+            <div className="w-8 h-8 rounded-full bg-negative/10 flex items-center justify-center">
+              <ArrowUpRight className="w-4 h-4 text-negative stroke-[2.5px]" />
             </div>
-            <span className="text-[var(--color-text-foreground)] font-medium text-sm">Pengeluaran</span>
+            <div className="text-center">
+              <span className="text-[var(--color-text-foreground)] font-medium text-xs block">Pengeluaran</span>
+              <span className="text-negative font-bold text-[10px] mt-0.5 block">{formatShort(data.total_expense)}</span>
+            </div>
           </button>
-          <button onClick={() => openModal('Income')} className="bg-surface rounded-2xl py-4 flex flex-col items-center gap-2 active:scale-95 transition-transform border border-black/5 dark:border-white/5">
-            <div className="w-10 h-10 rounded-full bg-positive/10 flex items-center justify-center">
-              <ArrowDownRight className="w-5 h-5 text-positive stroke-[2.5px]" />
+          <button onClick={() => openModal('Income')} className="bg-surface rounded-2xl py-3 flex flex-col items-center gap-1.5 active:scale-95 transition-transform border border-black/5 dark:border-white/5">
+            <div className="w-8 h-8 rounded-full bg-positive/10 flex items-center justify-center">
+              <ArrowDownRight className="w-4 h-4 text-positive stroke-[2.5px]" />
             </div>
-            <span className="text-[var(--color-text-foreground)] font-medium text-sm">Pemasukan</span>
+            <div className="text-center">
+              <span className="text-[var(--color-text-foreground)] font-medium text-xs block">Pemasukan</span>
+              <span className="text-positive font-bold text-[10px] mt-0.5 block">{formatShort(data.total_income)}</span>
+            </div>
           </button>
         </div>
 
@@ -212,7 +231,7 @@ export default function Dashboard() {
           <div className="bg-surface rounded-2xl p-4 mb-5 border border-black/5 dark:border-white/5">
             <h3 className="text-sm font-medium text-[var(--color-text-foreground)] mb-3">Insight Bulan Ini</h3>
             <div className="flex items-center gap-2">
-              <div className="w-[120px] h-[120px] flex-shrink-0">
+              <div className="w-[90px] h-[90px] flex-shrink-0">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Tooltip contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: 'var(--color-text-foreground)' }} formatter={(v: any) => formatRp(v)} />
@@ -224,12 +243,12 @@ export default function Dashboard() {
               </div>
               <div className="flex-1 space-y-2">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-positive" /><span className="text-xs text-[var(--color-text-muted)]">Pemasukan</span></div>
-                  <span className="text-xs font-medium text-positive">{formatRp(data.total_income)}</span>
+                  <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-positive" /><span className="text-[10px] text-[var(--color-text-muted)]">Pemasukan</span></div>
+                  <span className="text-[10px] font-medium text-positive">{formatRp(data.total_income)}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-negative" /><span className="text-xs text-[var(--color-text-muted)]">Pengeluaran</span></div>
-                  <span className="text-xs font-medium text-negative">{formatRp(data.total_expense)}</span>
+                  <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-negative" /><span className="text-[10px] text-[var(--color-text-muted)]">Pengeluaran</span></div>
+                  <span className="text-[10px] font-medium text-negative">{formatRp(data.total_expense)}</span>
                 </div>
               </div>
             </div>
@@ -326,7 +345,7 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <button onClick={() => openModal()} className="bg-[var(--color-stabilo)] hover:bg-[#b3e600] text-white px-4 py-2 rounded-xl flex items-center gap-2 text-sm font-bold transition-colors shadow-lg shadow-[var(--color-stabilo)]/30">
+            <button onClick={() => openModal()} className="bg-[var(--color-stabilo)] hover:bg-[#b3e600] text-stabilo-btn px-6 py-2.5 rounded-xl font-bold transition-colors shadow-[0_0_15px_rgba(204,255,0,0.3)] flex items-center gap-2">
               <span className="text-lg leading-none">+</span> Catat Transaksi
             </button>
           </div>
