@@ -11,7 +11,7 @@ export default function Settings() {
   const [success, setSuccess] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
-  
+
   const token = useAuth(state => state.token);
   const user = useAuth(state => state.user);
   const logout = useAuth(state => state.logout);
@@ -26,9 +26,9 @@ export default function Settings() {
   const handleGenerateData = async () => {
     setIsGenerating(true);
     setSuccess(false);
-    
+
     const res = await fetchApi('GENERATE_DUMMY_DATA', {}, token!);
-    
+
     setIsGenerating(false);
     if (res.status === 'success') {
       setSuccess(true);
@@ -48,9 +48,9 @@ export default function Settings() {
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-full bg-surface-light flex items-center justify-center overflow-hidden border-2 border-white/5">
               {user?.profile_picture_url ? (
-                <img 
-                  src={user.profile_picture_url} 
-                  alt="Profile" 
+                <img
+                  src={user.profile_picture_url}
+                  alt="Profile"
                   onError={(e) => { (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.full_name || 'User'}`; }}
                   className="w-full h-full object-cover"
                 />
@@ -81,7 +81,7 @@ export default function Settings() {
               </div>
             </div>
           </div>
-          
+
           <div className="p-6 flex items-center justify-between hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer">
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 rounded-xl bg-surface-light flex items-center justify-center text-positive">
@@ -94,7 +94,7 @@ export default function Settings() {
             </div>
           </div>
 
-          <div 
+          <div
             onClick={useTheme.getState().toggleTheme}
             className="p-6 flex items-center justify-between hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
           >
@@ -119,15 +119,15 @@ export default function Settings() {
             <Database className="w-5 h-5" /> Developer Area
           </h3>
           <p className="text-sm text-slate-400 mb-6">Fungsi di bawah ini akan memanipulasi Google Spreadsheet Anda. Gunakan dengan hati-hati.</p>
-          
+
           <div className="flex items-center gap-4">
-            <button 
+            <button
               onClick={handleGenerateData}
               disabled={isGenerating}
               className="px-6 py-3 bg-surface hover:bg-white/10 border border-white/10 rounded-xl transition-colors font-medium flex items-center gap-2 disabled:opacity-50"
             >
-              {isGenerating ? <Loader2 className="w-5 h-5 animate-spin" /> : 
-               success ? <Check className="w-5 h-5 text-positive" /> : <Database className="w-5 h-5" />}
+              {isGenerating ? <Loader2 className="w-5 h-5 animate-spin" /> :
+                success ? <Check className="w-5 h-5 text-positive" /> : <Database className="w-5 h-5" />}
               {isGenerating ? 'Menghasilkan...' : success ? 'Data Berhasil Dibuat!' : 'Generate Dummy Data'}
             </button>
             <p className="text-xs text-slate-500 max-w-xs">Tombol ini akan menghapus semua data yang ada di Sheet dan mengisinya dengan data acak.</p>
@@ -135,7 +135,7 @@ export default function Settings() {
         </div>
         {/* Logout Section */}
         <div className="glass rounded-2xl overflow-hidden mt-6 border border-negative/10">
-          <div 
+          <div
             onClick={() => setIsLogoutDialogOpen(true)}
             className="p-6 flex items-center gap-4 hover:bg-white/5 transition-colors cursor-pointer text-negative"
           >
@@ -161,9 +161,9 @@ export default function Settings() {
             <div className="w-16 h-16 rounded-full bg-negative/10 flex items-center justify-center mx-auto mb-5">
               <AlertTriangle className="w-8 h-8 text-negative" />
             </div>
-            <h3 className="text-xl font-bold text-[var(--color-text-foreground)] mb-2">Keluar dari Finoza Apps?</h3>
+            <h3 className="text-xl font-bold text-[var(--color-text-foreground)] mb-2">Keluar dari Aplikasi?</h3>
             <p className="text-sm text-[var(--color-text-muted)] mb-8">Sesi Anda akan berakhir dan Anda harus login kembali untuk mengakses dashboard.</p>
-            
+
             <div className="flex gap-3">
               <button
                 onClick={() => setIsLogoutDialogOpen(false)}

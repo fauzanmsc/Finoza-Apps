@@ -45,21 +45,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
 
   const navItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
-    { 
-      icon: ArrowLeftRight, 
-      label: 'Transaksi', 
-      path: '/transactions',
-      isDropdown: true,
-      isOpen: isTransactionsOpen,
-      toggle: () => {
-        if (isSidebarCompact) navigate('/transactions');
-        else setIsTransactionsOpen(!isTransactionsOpen);
-      },
-      subItems: [
-        { label: 'Catat Pemasukan', action: 'Income' },
-        { label: 'Catat Pengeluaran', action: 'Expense' }
-      ]
-    },
+    { icon: ArrowLeftRight, label: 'Transaksi', path: '/transactions' },
     { icon: WalletCards, label: 'Aset & Rekening', path: '/accounts' },
     { icon: FileText, label: 'Jurnal Lengkap', path: '/journal' },
     { icon: PieChart, label: 'Anggaran Bulanan', path: '/budget' },
@@ -76,7 +62,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
           <img 
             src={isSidebarCompact ? "/favicon.png" : (theme === 'dark' ? "/logo-finoza-light.png" : "/logo-finoza-dark.png")} 
             alt="Finoza Apps" 
-            className={`object-contain transition-all duration-300 ${isSidebarCompact ? 'h-6 w-6' : 'h-8'}`} 
+            className={`object-contain transition-all duration-300 ${isSidebarCompact ? 'h-8 w-8' : 'h-10'}`} 
           />
         </div>
 

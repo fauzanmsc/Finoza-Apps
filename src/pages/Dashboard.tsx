@@ -18,15 +18,56 @@ export default function Dashboard() {
 
   const loadData = async () => {
     setIsLoading(true);
-    const [resDash, resTx] = await Promise.all([
-      fetchApi('GET_DASHBOARD_DATA', {}, token!),
-      fetchApi('GET_TRANSACTIONS', {}, token!)
-    ]);
-    if (resDash.status === 'success') {
-      setData(resDash.data);
-    }
-    if (resTx.status === 'success') {
-      setAllTransactions(resTx.data || []);
+    try {
+      const [resTx, resAcc] = await Promise.all([
+        fetchApi('GET_TRANSACTIONS', {}, token!),
+        fetchApi('GET_ACCOUNTS', {}, token!)
+      ]);
+      
+      const transactions = resTx.status === 'success' && Array.isArray(resTx.data) ? resTx.data : [];
+      const accounts = resAcc.status === 'success' && Array.isArray(resAcc.data) ? resAcc.data : [];
+
+      setAllTransactions(transactions);
+
+      const now = new Date();
+      const currentMonthTx = transactions.filter(tx => {
+        const d = new Date(tx.tx_date);
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      });
+
+      const total_income = currentMonthTx.filter(tx => tx.tx_type === 'Income').reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0);
+      const total_expense = currentMonthTx.filter(tx => tx.tx_type === 'Expense').reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0);
+
+      const expenseByCategory = currentMonthTx.filter(tx => tx.tx_type === 'Expense').reduce((acc, tx) => {
+        const cat = tx.category_id || 'Lainnya';
+        if (!acc[cat]) acc[cat] = 0;
+        acc[cat] += (Number(tx.amount) || 0);
+        return acc;
+      }, {} as Record<string, number>);
+
+      const top_expenses = Object.keys(expenseByCategory)
+        .map(name => ({ name, amount: expenseByCategory[name] }))
+        .sort((a, b) => b.amount - a.amount)
+        .slice(0, 5);
+
+      const accountsTotal = accounts.reduce((sum, acc) => sum + (Number(acc.initial_balance) || 0), 0);
+      const allTimeIncome = transactions.filter(tx => tx.tx_type === 'Income').reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0);
+      const allTimeExpense = transactions.filter(tx => tx.tx_type === 'Expense').reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0);
+      const net_balance = accountsTotal + allTimeIncome - allTimeExpense;
+
+      const recent_transactions = [...transactions].sort((a, b) => new Date(b.tx_date).getTime() - new Date(a.tx_date).getTime()).slice(0, 5);
+
+      setData({
+        net_balance,
+        total_income,
+        total_expense,
+        top_expenses,
+        recent_transactions,
+        accounts
+      });
+    } catch (err) {
+      console.error(err);
+      setData({ net_balance: 0, total_income: 0, total_expense: 0, top_expenses: [], recent_transactions: [], accounts: [] });
     }
     setIsLoading(false);
   };

@@ -101,7 +101,7 @@ export default function Login() {
                       type="email"
                       value={email}
                       onChange={(e) => { setEmail(e.target.value); setError(''); }}
-                      placeholder="fauzan@moniq.com"
+                      placeholder="fauzan@finoza.id"
                       className="w-full bg-black/20 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white placeholder:text-slate-600 focus:outline-none focus:border-[var(--color-stabilo)] focus:bg-black/40 focus:ring-1 focus:ring-[var(--color-stabilo)] transition-all"
                       required
                     />

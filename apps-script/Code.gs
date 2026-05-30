@@ -1,5 +1,5 @@
 /**
- * MONIQ - Google Apps Script Backend (API Gateway)
+ * Finoza - Google Apps Script Backend (API Gateway)
  * PHASE 4: FULL INTEGRATION + DUMMY DATA
  */
 
