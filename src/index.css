@@ -1,15 +1,18 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(:root:not(.light), :root:not(.light) *));
+
 @theme {
-  --color-background: #121829;
-  --color-surface: #1a2236;
-  --color-surface-light: #242f48;
+  --color-background: #0B101E;
+  --color-background-grad-end: #03211B;
+  --color-surface: #131A2A;
+  --color-surface-light: #1A2438;
   --color-primary: #6366F1;
-  --color-stabilo: #ccff00;
-  --color-positive: #10B981;
-  --color-negative: #EF4444;
-  --color-text-foreground: #ffffff;
-  --color-text-muted: #94a3b8;
+  --color-stabilo: #D4FF00;
+  --color-positive: #1EE494;
+  --color-negative: #FF4D4D;
+  --color-text-foreground: #F8FAFC;
+  --color-text-muted: #94A3B8;
   --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
   --animate-bounce-slow: bounce-slow 3s infinite ease-in-out;
   --animate-progress-bar: progress-bar 2s ease-out forwards;
@@ -18,24 +21,32 @@
 @layer base {
   :root {
     color-scheme: dark;
-    --color-glass-bg: rgba(26, 34, 54, 0.7);
-    --color-glass-border: rgba(255, 255, 255, 0.05);
+    --color-glass-bg: rgba(19, 26, 42, 0.6);
+    --color-glass-border: rgba(255, 255, 255, 0.08);
+    --color-glass-shadow: rgba(0, 0, 0, 0.3);
+    --color-glow-stabilo: rgba(212, 255, 0, 0.3);
   }
   
   :root.light {
     color-scheme: light;
-    --color-background: #f8fafc;
-    --color-surface: #ffffff;
-    --color-surface-light: #f1f5f9;
-    --color-text-foreground: #0f172a;
-    --color-text-muted: #64748b;
-    --color-glass-bg: rgba(255, 255, 255, 0.9);
-    --color-glass-border: rgba(0, 0, 0, 0.1);
-    --color-stabilo: #65a30d;
+    --color-background: #F8FAFC;
+    --color-background-grad-end: #F1F5F9;
+    --color-surface: #FFFFFF;
+    --color-surface-light: #F1F5F9;
+    --color-text-foreground: #0F172A;
+    --color-text-muted: #64748B;
+    --color-glass-bg: rgba(255, 255, 255, 0.8);
+    --color-glass-border: rgba(0, 0, 0, 0.06);
+    --color-glass-shadow: rgba(150, 173, 195, 0.2);
+    --color-stabilo: #ccff00;
+    --color-glow-stabilo: rgba(204, 255, 0, 0.6);
+    --color-positive: #10B981;
+    --color-negative: #EF4444;
   }
 
   body {
-    @apply bg-background text-[var(--color-text-foreground)] font-sans antialiased transition-colors duration-300;
+    @apply text-[var(--color-text-foreground)] font-sans antialiased transition-colors duration-300 min-h-screen;
+    background: linear-gradient(135deg, var(--color-background) 0%, var(--color-background-grad-end) 100%);
   }
 }
 
@@ -58,8 +69,10 @@
 /* Glassmorphism utility */
 @utility glass {
   background: var(--color-glass-bg);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--color-glass-border);
+  box-shadow: 0 8px 32px 0 var(--color-glass-shadow);
 }
 
 /* Prevent horizontal scroll globally */

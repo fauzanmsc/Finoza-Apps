@@ -4,6 +4,7 @@ import { fetchApi } from '../services/api';
 import { useAuth } from '../store/useAuth';
 import DebtModal from '../components/debts/DebtModal';
 import EmptyState from '../components/ui/EmptyState';
+import ConfirmModal from '../components/ui/ConfirmModal';
 
 export default function Debts() {
   const [debts, setDebts] = useState<any[]>([]);
@@ -11,6 +12,9 @@ export default function Debts() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDebt, setEditingDebt] = useState<any>(null);
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{isOpen: boolean; id: string | null}>({ isOpen: false, id: null });
+  const [isDeleting, setIsDeleting] = useState(false);
+
 
   const token = useAuth(state => state.token);
 
@@ -27,12 +31,19 @@ export default function Debts() {
     setIsLoading(false);
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Yakin ingin menghapus catatan ini?')) {
-      await fetchApi('DELETE_DEBT', { id }, token!);
+  const handleDelete = (id: string) => {
+    setActiveMenuId(null);
+    setConfirmModal({ isOpen: true, id });
+  };
+
+  const confirmDelete = async () => {
+    if (confirmModal.id) {
+      setIsDeleting(true);
+      await fetchApi('DELETE_DEBT', { id: confirmModal.id }, token!);
+      setIsDeleting(false);
+      setConfirmModal({ isOpen: false, id: null });
       loadDebts();
     }
-    setActiveMenuId(null);
   };
 
   const handleEdit = (debt: any) => {
@@ -156,6 +167,14 @@ export default function Debts() {
         }}
         onRefresh={loadDebts}
         initialData={editingDebt}
+      />
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ isOpen: false, id: null })}
+        onConfirm={confirmDelete}
+        message="Yakin ingin menghapus catatan ini?"
+        isLoading={isDeleting}
       />
     </div>
   );

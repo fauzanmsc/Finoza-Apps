@@ -4,6 +4,7 @@ import { fetchApi } from '../services/api';
 import { useAuth } from '../store/useAuth';
 import BudgetModal from '../components/budget/BudgetModal';
 import EmptyState from '../components/ui/EmptyState';
+import ConfirmModal from '../components/ui/ConfirmModal';
 import { PieChart } from 'lucide-react';
 
 export default function Budget() {
@@ -12,6 +13,8 @@ export default function Budget() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBudget, setEditingBudget] = useState<any>(null);
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{isOpen: boolean; id: string | null}>({ isOpen: false, id: null });
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const token = useAuth(state => state.token);
 
@@ -29,11 +32,17 @@ export default function Budget() {
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Yakin ingin menghapus anggaran ini?')) {
-      await fetchApi('DELETE_BUDGET', { id }, token!);
-      loadBudgets();
-    }
+    setConfirmModal({ isOpen: true, id });
     setActiveMenuId(null);
+  };
+
+  const confirmDelete = async () => {
+    if (!confirmModal.id) return;
+    setIsDeleting(true);
+    await fetchApi('DELETE_BUDGET', { id: confirmModal.id }, token!);
+    setIsDeleting(false);
+    setConfirmModal({ isOpen: false, id: null });
+    loadBudgets();
   };
 
   const handleEdit = (budget: any) => {
@@ -166,6 +175,16 @@ export default function Budget() {
         }}
         onRefresh={loadBudgets}
         initialData={editingBudget}
+      />
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ isOpen: false, id: null })}
+        onConfirm={confirmDelete}
+        message="Yakin ingin menghapus anggaran ini?"
+        confirmText="Hapus"
+        cancelText="Batal"
+        isLoading={isDeleting}
       />
     </div>
   );

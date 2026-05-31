@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Bell, Shield, Moon, Database, Loader2, Check, LogOut, AlertTriangle, Download, ChevronDown, ChevronRight } from 'lucide-react';
+import { User, Bell, Shield, Moon, Database, Loader2, Check, LogOut, AlertTriangle, Download, ChevronDown, ChevronRight, AlertCircle } from 'lucide-react';
 import { fetchApi } from '../services/api';
 import { useAuth } from '../store/useAuth';
 import { useTheme } from '../store/useTheme';
@@ -14,12 +14,18 @@ export default function Settings() {
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
   const [imgError, setImgError] = useState(false);
   const [isDevAreaOpen, setIsDevAreaOpen] = useState(false);
+  const [imgCacheBuster, setImgCacheBuster] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
 
   const token = useAuth(state => state.token);
   const user = useAuth(state => state.user);
   const logout = useAuth(state => state.logout);
   const navigate = useNavigate();
   const { isInstallable, installPWA } = usePWA();
+
+  useEffect(() => {
+    setImgCacheBuster(`?t=${Date.now()}`);
+  }, [user?.profile_picture_url]);
 
   const handleLogoutConfirm = () => {
     setIsLogoutDialogOpen(false);
@@ -38,12 +44,28 @@ export default function Settings() {
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } else {
-      alert("Gagal generate data: " + res.message);
+      setErrorMsg("Gagal generate data: " + res.message);
+      setTimeout(() => setErrorMsg(''), 4000);
     }
   };
 
   return (
     <div className="p-4 lg:p-8 w-full max-w-4xl mx-auto space-y-5 lg:space-y-8 antialiased tracking-tight">
+      {/* Error Toast */}
+      {errorMsg && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[200] animate-[popIn_0.4s_cubic-bezier(0.16,1,0.3,1)]">
+          <div className="bg-white dark:bg-[#121620] border border-black/5 dark:border-white/10 rounded-2xl px-5 py-3 shadow-2xl dark:shadow-[0_0_40px_rgba(0,0,0,0.5)] flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+            <p className="text-sm font-medium text-slate-700 dark:text-white">{errorMsg}</p>
+          </div>
+          <style>{`
+            @keyframes popIn {
+              from { opacity: 0; transform: translate(-50%, -10px) scale(0.95); }
+              to { opacity: 1; transform: translate(-50%, 0) scale(1); }
+            }
+          `}</style>
+        </div>
+      )}
       <h2 className="text-xl lg:text-2xl font-bold">Pengaturan</h2>
 
       <div className="space-y-4 lg:space-y-6">
@@ -53,7 +75,7 @@ export default function Settings() {
             <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-full bg-surface-light flex items-center justify-center overflow-hidden border-2 border-white/5">
               {user?.profile_picture_url && !imgError && user.profile_picture_url !== 'null' ? (
                 <img
-                  src={user.profile_picture_url}
+                  src={`${user.profile_picture_url}${imgCacheBuster}`}
                   alt="Profile"
                   onError={() => setImgError(true)}
                   className="w-full h-full object-cover"
@@ -69,7 +91,7 @@ export default function Settings() {
               <p className="text-slate-400 text-xs lg:text-sm">{user?.email || 'email@example.com'}</p>
             </div>
           </div>
-          <button onClick={() => setIsProfileModalOpen(true)} className="px-3 py-1.5 lg:px-4 lg:py-2 text-xs lg:text-sm bg-surface hover:bg-white/5 border border-white/10 rounded-xl transition-colors font-medium">
+          <button onClick={() => setIsProfileModalOpen(true)} className="px-3 py-1.5 lg:px-4 lg:py-2 text-xs lg:text-sm glass hover:bg-white/5 border border-white/10 rounded-xl transition-colors font-medium">
             Edit Profil
           </button>
         </div>
@@ -161,7 +183,7 @@ export default function Settings() {
                 <button
                   onClick={handleGenerateData}
                   disabled={isGenerating}
-                  className="px-4 py-2 lg:px-6 lg:py-3 text-xs lg:text-sm bg-surface hover:bg-white/10 border border-white/10 rounded-xl transition-colors font-medium flex items-center gap-2 disabled:opacity-50"
+                  className="px-4 py-2 lg:px-6 lg:py-3 text-xs lg:text-sm glass hover:bg-white/10 border border-white/10 rounded-xl transition-colors font-medium flex items-center gap-2 disabled:opacity-50"
                 >
                   {isGenerating ? <Loader2 className="w-5 h-5 animate-spin" /> :
                     success ? <Check className="w-5 h-5 text-positive" /> : <Database className="w-5 h-5" />}
@@ -195,33 +217,37 @@ export default function Settings() {
       {/* Logout Confirmation Dialog */}
       {isLogoutDialogOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsLogoutDialogOpen(false)} />
-          <div className="relative bg-surface border border-white/10 rounded-3xl p-8 shadow-2xl max-w-sm w-full text-center animate-[zoomIn_0.2s_ease-out]">
-            <div className="w-16 h-16 rounded-full bg-negative/10 flex items-center justify-center mx-auto mb-5">
-              <AlertTriangle className="w-8 h-8 text-negative" />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-[fadeIn_0.3s_ease-out]" onClick={() => setIsLogoutDialogOpen(false)} />
+          <div className="relative bg-white dark:bg-[#121620] border border-black/5 dark:border-white/10 rounded-3xl p-8 shadow-2xl dark:shadow-[0_0_40px_rgba(0,0,0,0.5)] max-w-sm w-full text-center animate-[popIn_0.4s_cubic-bezier(0.16,1,0.3,1)]">
+            <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-500/20 flex items-center justify-center mx-auto mb-5 shadow-[0_0_30px_rgba(239,68,68,0.2)]">
+              <AlertTriangle className="w-8 h-8 text-red-600 dark:text-red-400" />
             </div>
-            <h3 className="text-xl font-bold text-[var(--color-text-foreground)] mb-2">Keluar dari Aplikasi?</h3>
-            <p className="text-sm text-[var(--color-text-muted)] mb-8">Sesi Anda akan berakhir dan Anda harus login kembali untuk mengakses dashboard.</p>
+            <h3 className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-2">Keluar dari Aplikasi?</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mb-8 leading-relaxed">Sesi Anda akan berakhir dan Anda harus login kembali untuk mengakses dashboard.</p>
 
             <div className="flex gap-3">
               <button
                 onClick={() => setIsLogoutDialogOpen(false)}
-                className="flex-1 py-3 px-4 rounded-2xl border border-white/10 text-[var(--color-text-foreground)] font-medium hover:bg-white/5 transition-colors"
+                className="flex-1 py-3 px-4 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white/90 font-semibold hover:bg-slate-200 dark:hover:bg-white/10 transition-colors"
               >
                 Batal
               </button>
               <button
                 onClick={handleLogoutConfirm}
-                className="flex-1 py-3 px-4 rounded-2xl bg-negative text-white font-medium hover:bg-red-600 transition-colors shadow-lg shadow-negative/30"
+                className="flex-1 py-3 px-4 rounded-full bg-red-500 hover:bg-red-600 text-white font-bold transition-colors shadow-[0_0_20px_rgba(239,68,68,0.3)] hover:shadow-[0_0_25px_rgba(239,68,68,0.5)]"
               >
                 Ya, Keluar
               </button>
             </div>
           </div>
           <style>{`
-            @keyframes zoomIn {
-              from { opacity: 0; transform: scale(0.9); }
-              to { opacity: 1; transform: scale(1); }
+            @keyframes fadeIn {
+              from { opacity: 0; }
+              to { opacity: 1; }
+            }
+            @keyframes popIn {
+              from { opacity: 0; transform: scale(0.9) translateY(10px); }
+              to { opacity: 1; transform: scale(1) translateY(0); }
             }
           `}</style>
         </div>

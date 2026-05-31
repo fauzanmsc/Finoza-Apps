@@ -12,9 +12,9 @@ export default function AppLayout() {
   const location = useLocation();
 
   return (
-    <div className="flex h-screen w-full bg-background overflow-hidden text-[var(--color-text-foreground)] transition-all duration-300">
+    <div className="flex h-screen w-full bg-transparent overflow-hidden text-[var(--color-text-foreground)] transition-all duration-300">
       {/* Desktop Sidebar - Hidden on mobile */}
-      <div className={`hidden lg:block flex-shrink-0 border-r border-black/5 dark:border-white/5 bg-surface z-10 transition-all duration-300 ${isSidebarCompact ? 'w-20' : 'w-64'}`}>
+      <div className={`hidden lg:block flex-shrink-0 bg-transparent z-10 transition-all duration-300 ${isSidebarCompact ? 'w-20' : 'w-[280px]'}`}>
         <Sidebar />
       </div>
 

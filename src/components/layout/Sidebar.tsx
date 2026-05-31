@@ -22,7 +22,7 @@ import {
 import { cn } from '../../lib/utils';
 import { useAuth } from '../../store/useAuth';
 import { useTheme } from '../../store/useTheme';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ProfileModal from '../profile/ProfileModal';
 import TransactionModal from '../transactions/TransactionModal';
 
@@ -35,6 +35,11 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
   const { theme, toggleTheme, isSidebarCompact, toggleSidebarCompact } = useTheme();
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
+  const [imgCacheBuster, setImgCacheBuster] = useState('');
+
+  useEffect(() => {
+    setImgCacheBuster(`?t=${Date.now()}`);
+  }, [user?.profile_picture_url]);
 
   const [transactionModalType, setTransactionModalType] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -60,7 +65,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
 
   return (
     <>
-      <aside className={`h-full flex flex-col py-6 bg-surface transition-all duration-300 ${isSidebarCompact ? 'px-2' : 'px-4'}`}>
+      <aside className={`h-full flex flex-col py-6 bg-transparent transition-all duration-300 ${isSidebarCompact ? 'px-2' : 'px-6'}`}>
         {/* Header / Logo */}
         <div className={`flex items-center mb-10 transition-all ${isSidebarCompact ? 'flex-col gap-4 px-0' : 'justify-between px-2'}`}>
           <img
@@ -124,15 +129,15 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
                 to={item.path}
                 onClick={onNavigate}
                 className={({ isActive }) => cn(
-                  "flex items-center gap-3 py-3 rounded-xl transition-all duration-200 text-sm font-medium",
-                  isSidebarCompact ? "justify-center px-0" : "px-3",
+                  "flex items-center gap-3 py-3.5 rounded-2xl transition-all duration-300 text-[15px]",
+                  isSidebarCompact ? "justify-center px-0" : "px-4",
                   isActive
-                    ? "bg-[var(--color-stabilo)]/10 text-[var(--color-stabilo)]"
-                    : "text-[var(--color-text-muted)] hover:text-[var(--color-text-foreground)] hover:bg-black/5 dark:hover:bg-white/5"
+                    ? "bg-[var(--color-stabilo)] text-[#0B101E] font-extrabold shadow-lg shadow-[var(--color-stabilo)]/20"
+                    : "text-[var(--color-text-muted)] font-medium hover:text-[var(--color-text-foreground)] hover:bg-black/5 dark:hover:bg-white/5"
                 )}
                 title={isSidebarCompact ? item.label : undefined}
               >
-                <item.icon className="w-5 h-5 flex-shrink-0" />
+                <item.icon className="w-[22px] h-[22px] flex-shrink-0 transition-all duration-300" />
                 {!isSidebarCompact && <span>{item.label}</span>}
               </NavLink>
             );
@@ -146,18 +151,18 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
             <button
               onClick={toggleTheme}
               className={cn(
-                "w-full flex items-center p-3 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors text-sm font-medium text-[var(--color-text-foreground)]",
+                "w-full flex items-center p-3.5 rounded-2xl border border-white/5 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors text-sm font-medium text-[var(--color-text-foreground)]",
                 isSidebarCompact ? "justify-center" : "justify-between"
               )}
               title={isSidebarCompact ? "Toggle Theme" : undefined}
             >
               <span className={cn("flex items-center", isSidebarCompact ? "" : "gap-3")}>
-                {theme === 'dark' ? <Moon className="w-4 h-4 text-slate-400" /> : <Sun className="w-4 h-4 text-amber-500" />}
+                {theme === 'dark' ? <Moon className="w-5 h-5 text-slate-400" /> : <Sun className="w-5 h-5 text-amber-500" />}
                 {!isSidebarCompact && (theme === 'dark' ? 'Dark Mode' : 'Light Mode')}
               </span>
               {!isSidebarCompact && (
-                <div className={`w-8 h-4 rounded-full p-0.5 transition-colors ${theme === 'dark' ? 'bg-[var(--color-stabilo)]' : 'bg-slate-300'}`}>
-                  <div className={`w-3 h-3 rounded-full bg-black transition-transform ${theme === 'dark' ? 'translate-x-4' : 'translate-x-0'}`} />
+                <div className={`w-10 h-5 rounded-full p-0.5 transition-all shadow-inner ${theme === 'dark' ? 'bg-[var(--color-stabilo)] shadow-[0_0_10px_var(--color-glow-stabilo)]' : 'bg-slate-300'}`}>
+                  <div className={`w-4 h-4 rounded-full transition-transform ${theme === 'dark' ? 'bg-[#0B101E] translate-x-5' : 'bg-white translate-x-0'}`} />
                 </div>
               )}
             </button>
@@ -172,7 +177,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
           >
             {user?.profile_picture_url && !imgError && user.profile_picture_url !== 'null' ? (
               <img 
-                src={user.profile_picture_url} 
+                src={`${user.profile_picture_url}${imgCacheBuster}`} 
                 alt="Profile" 
                 onError={() => setImgError(true)}
                 className="w-10 h-10 rounded-full object-cover bg-slate-800 flex-shrink-0" 
@@ -216,33 +221,37 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
       {/* Logout Confirmation Dialog */}
       {isLogoutDialogOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsLogoutDialogOpen(false)} />
-          <div className="relative bg-surface border border-white/10 rounded-3xl p-8 shadow-2xl max-w-sm w-full text-center animate-[zoomIn_0.2s_ease-out]">
-            <div className="w-16 h-16 rounded-full bg-negative/10 flex items-center justify-center mx-auto mb-5">
-              <AlertTriangle className="w-8 h-8 text-negative" />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-[fadeIn_0.3s_ease-out]" onClick={() => setIsLogoutDialogOpen(false)} />
+          <div className="relative bg-white dark:bg-[#121620] border border-black/5 dark:border-white/10 rounded-3xl p-8 shadow-2xl dark:shadow-[0_0_40px_rgba(0,0,0,0.5)] max-w-sm w-full text-center animate-[popIn_0.4s_cubic-bezier(0.16,1,0.3,1)]">
+            <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-500/20 flex items-center justify-center mx-auto mb-5 shadow-[0_0_30px_rgba(239,68,68,0.2)]">
+              <AlertTriangle className="w-8 h-8 text-red-600 dark:text-red-400" />
             </div>
-            <h3 className="text-xl font-bold text-[var(--color-text-foreground)] mb-2">Keluar dari Finoza Apps?</h3>
-            <p className="text-sm text-[var(--color-text-muted)] mb-8">Sesi Anda akan berakhir dan Anda harus login kembali untuk mengakses dashboard.</p>
+            <h3 className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-2">Keluar dari Finoza Apps?</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mb-8 leading-relaxed">Sesi Anda akan berakhir dan Anda harus login kembali untuk mengakses dashboard.</p>
 
             <div className="flex gap-3">
               <button
                 onClick={() => setIsLogoutDialogOpen(false)}
-                className="flex-1 py-3 px-4 rounded-2xl border border-white/10 text-[var(--color-text-foreground)] font-medium hover:bg-white/5 transition-colors"
+                className="flex-1 py-3 px-4 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white/90 font-semibold hover:bg-slate-200 dark:hover:bg-white/10 transition-colors"
               >
                 Batal
               </button>
               <button
                 onClick={handleLogoutConfirm}
-                className="flex-1 py-3 px-4 rounded-2xl bg-negative text-white font-medium hover:bg-red-600 transition-colors shadow-lg shadow-negative/30"
+                className="flex-1 py-3 px-4 rounded-full bg-red-500 hover:bg-red-600 text-white font-bold transition-colors shadow-[0_0_20px_rgba(239,68,68,0.3)] hover:shadow-[0_0_25px_rgba(239,68,68,0.5)]"
               >
                 Ya, Keluar
               </button>
             </div>
           </div>
           <style>{`
-            @keyframes zoomIn {
-              from { opacity: 0; transform: scale(0.9); }
-              to { opacity: 1; transform: scale(1); }
+            @keyframes fadeIn {
+              from { opacity: 0; }
+              to { opacity: 1; }
+            }
+            @keyframes popIn {
+              from { opacity: 0; transform: scale(0.9) translateY(10px); }
+              to { opacity: 1; transform: scale(1) translateY(0); }
             }
           `}</style>
         </div>

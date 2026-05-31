@@ -17,7 +17,7 @@ export default function SplashScreen({ onFinish }: { onFinish: () => void }) {
 
   return (
     <div 
-      className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-gradient-to-br from-[#1a2236] via-[#242f48] to-[#0f172a] ${theme === 'light' ? 'from-[#e2e8f0] via-[#f1f5f9] to-[#ffffff]' : ''} transition-opacity duration-300 ${
+      className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-background transition-opacity duration-300 ${
         isFading ? 'opacity-0' : 'opacity-100'
       }`}
     >

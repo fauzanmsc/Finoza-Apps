@@ -4,6 +4,7 @@ import { fetchApi } from '../services/api';
 import { useAuth } from '../store/useAuth';
 import AccountModal from '../components/accounts/AccountModal';
 import EmptyState from '../components/ui/EmptyState';
+import ConfirmModal from '../components/ui/ConfirmModal';
 
 const ICON_MAP: Record<string, any> = {
   WalletCards, Building2, Smartphone, Banknote, CreditCard, PiggyBank, Landmark, CircleDollarSign, Wallet
@@ -17,6 +18,9 @@ export default function Accounts() {
   const [editingAccount, setEditingAccount] = useState<any>(null);
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [selectedAccount, setSelectedAccount] = useState<any>(null);
+  const [confirmModal, setConfirmModal] = useState<{isOpen: boolean; id: string | null}>({ isOpen: false, id: null });
+  const [isDeleting, setIsDeleting] = useState(false);
+
 
   const token = useAuth(state => state.token);
 
@@ -45,12 +49,19 @@ export default function Accounts() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Yakin ingin menghapus rekening ini?')) {
-      await fetchApi('DELETE_ACCOUNT', { id }, token!);
+  const handleDelete = (id: string) => {
+    setActiveMenuId(null);
+    setConfirmModal({ isOpen: true, id });
+  };
+
+  const confirmDelete = async () => {
+    if (confirmModal.id) {
+      setIsDeleting(true);
+      await fetchApi('DELETE_ACCOUNT', { id: confirmModal.id }, token!);
+      setIsDeleting(false);
+      setConfirmModal({ isOpen: false, id: null });
       loadAccounts();
     }
-    setActiveMenuId(null);
   };
 
   const handleEdit = (acc: any) => {
@@ -162,7 +173,7 @@ export default function Accounts() {
       {selectedAccount && (
         <div className="fixed inset-0 z-50 flex items-end lg:items-center justify-center p-0 lg:p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedAccount(null)} />
-          <div className="relative w-full max-w-lg bg-surface border border-white/10 rounded-t-3xl lg:rounded-3xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col">
+          <div className="relative w-full max-w-lg glass border border-white/10 rounded-t-3xl lg:rounded-3xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col">
             {/* Header with account card */}
             <div className="p-4 lg:p-6 text-white relative" style={{ background: selectedAccount.color_hex || '#1E3A8A' }}>
               <button onClick={() => setSelectedAccount(null)} className="absolute top-3 right-3 lg:top-4 lg:right-4 p-2 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-colors">
@@ -214,6 +225,14 @@ export default function Accounts() {
         }}
         onRefresh={loadAccounts}
         initialData={editingAccount}
+      />
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ isOpen: false, id: null })}
+        onConfirm={confirmDelete}
+        message="Yakin ingin menghapus rekening ini?"
+        isLoading={isDeleting}
       />
     </div>
   );

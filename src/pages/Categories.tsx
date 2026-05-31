@@ -21,6 +21,7 @@ import {
 import { fetchApi } from '../services/api';
 import { useAuth } from '../store/useAuth';
 import EmptyState from '../components/ui/EmptyState';
+import ConfirmModal from '../components/ui/ConfirmModal';
 
 const ICON_MAP: Record<string, any> = {
   'pizza': Pizza,
@@ -43,6 +44,8 @@ export default function Categories() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCat, setEditingCat] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [confirmModal, setConfirmModal] = useState<{isOpen: boolean; id: string | null}>({ isOpen: false, id: null });
+  const [isDeleting, setIsDeleting] = useState(false);
   
   const token = useAuth(state => state.token);
 
@@ -66,9 +69,16 @@ export default function Categories() {
     setIsLoading(false);
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Yakin ingin menghapus kategori ini?')) {
-      await fetchApi('DELETE_CATEGORY', { id }, token!);
+  const handleDelete = (id: string) => {
+    setConfirmModal({ isOpen: true, id });
+  };
+
+  const confirmDelete = async () => {
+    if (confirmModal.id) {
+      setIsDeleting(true);
+      await fetchApi('DELETE_CATEGORY', { id: confirmModal.id }, token!);
+      setIsDeleting(false);
+      setConfirmModal({ isOpen: false, id: null });
       loadCategories();
     }
   };
@@ -189,7 +199,7 @@ export default function Categories() {
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
-          <div className="relative w-full max-w-md bg-surface border border-white/10 rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="relative w-full max-w-md glass border border-white/10 rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between p-6 border-b border-white/5">
               <h2 className="text-xl font-bold">{editingCat ? 'Edit Kategori' : 'Tambah Kategori'}</h2>
               <button onClick={() => setIsModalOpen(false)} className="p-2 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors">
@@ -271,6 +281,14 @@ export default function Categories() {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ isOpen: false, id: null })}
+        onConfirm={confirmDelete}
+        message="Yakin ingin menghapus kategori ini?"
+        isLoading={isDeleting}
+      />
     </div>
   );
 }

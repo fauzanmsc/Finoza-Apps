@@ -4,6 +4,7 @@ import { fetchApi } from '../services/api';
 import { useAuth } from '../store/useAuth';
 import TransactionModal from '../components/transactions/TransactionModal';
 import EmptyState from '../components/ui/EmptyState';
+import ConfirmModal from '../components/ui/ConfirmModal';
 
 export default function Transactions() {
   const [txs, setTxs] = useState<any[]>([]);
@@ -14,6 +15,8 @@ export default function Transactions() {
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [filterType, setFilterType] = useState<string>('Semua');
   const [showFilterMenu, setShowFilterMenu] = useState(false);
+  const [confirmModal, setConfirmModal] = useState<{isOpen: boolean; id: string | null}>({ isOpen: false, id: null });
+  const [isDeleting, setIsDeleting] = useState(false);
   
   const token = useAuth(state => state.token);
 
@@ -30,12 +33,19 @@ export default function Transactions() {
     setIsLoading(false);
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Yakin ingin menghapus transaksi ini?')) {
-      await fetchApi('DELETE_TRANSACTION', { id }, token!);
+  const handleDelete = (id: string) => {
+    setActiveMenuId(null);
+    setConfirmModal({ isOpen: true, id });
+  };
+
+  const confirmDelete = async () => {
+    if (confirmModal.id) {
+      setIsDeleting(true);
+      await fetchApi('DELETE_TRANSACTION', { id: confirmModal.id }, token!);
+      setIsDeleting(false);
+      setConfirmModal({ isOpen: false, id: null });
       loadTxs();
     }
-    setActiveMenuId(null);
   };
 
   const handleEdit = (tx: any) => {
@@ -79,13 +89,13 @@ export default function Transactions() {
               placeholder="Cari transaksi..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-surface border border-white/10 rounded-xl py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-[var(--color-stabilo)] transition-all"
+              className="w-full glass border border-white/10 rounded-xl py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-[var(--color-stabilo)] transition-all"
             />
           </div>
           <div className="relative">
             <button 
               onClick={() => setShowFilterMenu(!showFilterMenu)}
-              className={`p-2.5 bg-surface border rounded-xl hover:bg-white/5 transition-colors ${filterType !== 'Semua' ? 'border-[var(--color-stabilo)] text-[var(--color-stabilo)]' : 'border-white/10 text-slate-400'}`}
+              className={`p-2.5 glass border rounded-xl hover:bg-white/5 transition-colors ${filterType !== 'Semua' ? 'border-[var(--color-stabilo)] text-[var(--color-stabilo)]' : 'border-white/10 text-slate-400'}`}
             >
               <Filter className="w-4 h-4" />
             </button>
@@ -181,6 +191,14 @@ export default function Transactions() {
         }} 
         onRefresh={loadTxs}
         initialData={editingTx}
+      />
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ isOpen: false, id: null })}
+        onConfirm={confirmDelete}
+        message="Yakin ingin menghapus transaksi ini?"
+        isLoading={isDeleting}
       />
     </div>
   );

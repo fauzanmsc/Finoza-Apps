@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Download, Loader2 } from 'lucide-react';
+import { Download, Loader2, AlertCircle } from 'lucide-react';
 import { fetchApi } from '../services/api';
 import { useAuth } from '../store/useAuth';
 import CalendarView from '../components/reports/CalendarView';
@@ -8,6 +8,7 @@ import ReportOverview from '../components/reports/ReportOverview';
 export default function Reports() {
   const [data, setData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [toastMsg, setToastMsg] = useState('');
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const token = useAuth(state => state.token);
@@ -45,7 +46,8 @@ export default function Reports() {
 
   const handleExportCSV = () => {
     if (!data || !data.daily_data) {
-      alert('Tidak ada data untuk di-export pada bulan ini.');
+      setToastMsg('Tidak ada data untuk di-export pada bulan ini.');
+      setTimeout(() => setToastMsg(''), 3000);
       return;
     }
     
@@ -70,9 +72,24 @@ export default function Reports() {
 
   return (
     <div className="p-4 lg:p-8 w-full max-w-5xl mx-auto space-y-6 md:space-y-8 antialiased">
+      {/* Toast notification */}
+      {toastMsg && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[200] animate-[popIn_0.4s_cubic-bezier(0.16,1,0.3,1)]">
+          <div className="bg-white dark:bg-[#121620] border border-black/5 dark:border-white/10 rounded-2xl px-5 py-3 shadow-2xl dark:shadow-[0_0_40px_rgba(0,0,0,0.5)] flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0" />
+            <p className="text-sm font-medium text-slate-700 dark:text-white">{toastMsg}</p>
+          </div>
+          <style>{`
+            @keyframes popIn {
+              from { opacity: 0; transform: translate(-50%, -10px) scale(0.95); }
+              to { opacity: 1; transform: translate(-50%, 0) scale(1); }
+            }
+          `}</style>
+        </div>
+      )}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl md:text-2xl font-bold">Laporan & Kalender</h2>
-        <button onClick={handleExportCSV} className="bg-surface hover:bg-white/10 border border-white/10 px-3 py-1.5 md:px-4 md:py-2 rounded-xl flex items-center gap-2 text-xs md:text-sm font-medium transition-colors hover:border-[var(--color-stabilo)] hover:text-[var(--color-stabilo)]">
+        <button onClick={handleExportCSV} className="glass hover:bg-white/10 border border-white/10 px-3 py-1.5 md:px-4 md:py-2 rounded-xl flex items-center gap-2 text-xs md:text-sm font-medium transition-colors hover:border-[var(--color-stabilo)] hover:text-[var(--color-stabilo)]">
           <Download className="w-4 h-4" /> <span className="hidden md:inline">Export CSV</span>
         </button>
       </div>
