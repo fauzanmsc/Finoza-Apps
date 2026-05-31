@@ -44,9 +44,9 @@ const CustomTooltip = ({ active, payload, label }: any) => {
           {payload.map((entry: any, index: number) => (
             <div key={index} className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-2.5">
-                <div 
-                  className="w-2.5 h-2.5 rounded-full" 
-                  style={{ backgroundColor: entry.color, boxShadow: `0 0 8px ${entry.color}` }} 
+                <div
+                  className="w-2.5 h-2.5 rounded-full"
+                  style={{ backgroundColor: entry.color, boxShadow: `0 0 8px ${entry.color}` }}
                 />
                 <span className="text-[13px] text-white/80 font-medium">{entry.name}</span>
               </div>
@@ -71,9 +71,9 @@ const PieCustomTooltip = ({ active, payload, total }: any) => {
           <span className="text-[14px] lg:text-[18px] font-extrabold text-white">{percent}%</span>
         </div>
         <div className="flex items-center gap-2">
-          <div 
-            className="w-2.5 h-2.5 rounded-full shadow-lg flex-shrink-0" 
-            style={{ backgroundColor: data.payload.color, boxShadow: `0 0 10px ${data.payload.color}` }} 
+          <div
+            className="w-2.5 h-2.5 rounded-full shadow-lg flex-shrink-0"
+            style={{ backgroundColor: data.payload.color, boxShadow: `0 0 10px ${data.payload.color}` }}
           />
           <span className="text-[14px] lg:text-[16px] font-bold text-white tracking-tight">{formatRp(data.value)}</span>
         </div>
@@ -276,7 +276,7 @@ export default function Dashboard() {
           )}
           <div className="min-w-0 flex-1">
             <h2 className="font-bold text-[16px] leading-tight truncate text-[var(--color-text-foreground)]">
-              Selamat datang, <span className="text-[var(--color-stabilo)]">{user?.full_name?.split(' ')[0] || 'User'}</span>! 👋
+              Selamat datang, <span className="text-[var(--color-stabilo)]">{user?.full_name?.split(' ')[0] || 'User'}</span> 👋
             </h2>
             <p className="text-[var(--color-text-muted)] text-[11px]">Berikut ringkasan keuangan Anda hari ini.</p>
           </div>
@@ -557,7 +557,7 @@ export default function Dashboard() {
             )}
             <div>
               <h2 className="text-[28px] lg:text-[32px] font-extrabold tracking-tight mb-1">
-                Selamat datang, <span className="text-[var(--color-stabilo)]">{user?.full_name?.split(' ')[0] || 'User'}</span>! 👋
+                Selamat datang, <span className="text-[var(--color-stabilo)]">{user?.full_name?.split(' ')[0] || 'User'}</span> 👋
               </h2>
               <p className="text-[var(--color-text-muted)] text-[15px]">Berikut ringkasan keuangan Anda hari ini.</p>
             </div>
@@ -571,7 +571,7 @@ export default function Dashboard() {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Row 1: Saldo Bersih, Akun Rekening, Insight Bulan Ini */}
-          
+
           {/* Saldo Bersih */}
           <div className="lg:col-span-5 flex flex-col">
             <div className="glass hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/20 transition-all duration-300 rounded-3xl p-8 relative overflow-hidden flex-1 flex flex-col justify-between min-h-[300px]">
@@ -638,22 +638,22 @@ export default function Dashboard() {
 
                 <div className="h-full flex flex-row lg:flex-col gap-3 overflow-x-auto lg:overflow-x-hidden lg:overflow-y-auto scrollbar-hide pb-2 lg:pb-6 px-1 lg:px-0">
                   {data.accounts && data.accounts.length > 0 ? data.accounts.map((acc: any, i: number) => (
-                  <div key={i} className="rounded-2xl p-5 flex-shrink-0 flex flex-col justify-between shadow-[0_8px_32px_rgba(0,0,0,0.1)] hover:-translate-y-1.5 hover:shadow-[0_16px_40px_rgba(0,0,0,0.2)] hover:scale-[1.02] transition-all duration-300 cursor-pointer relative overflow-hidden text-white min-h-[120px] w-[160px] lg:w-auto" style={{ background: getBankColor(acc.account_name, acc.color_hex) }}>
-                    <div className="flex justify-between items-start z-10 relative mb-3">
-                      <div>
-                        <span className="font-semibold text-[15px] block">{acc.account_name}</span>
-                        <span className="text-[11px] text-white/70 tracking-widest mt-0.5 block">•••• 1234</span>
+                    <div key={i} className="rounded-2xl p-5 flex-shrink-0 flex flex-col justify-between shadow-[0_8px_32px_rgba(0,0,0,0.1)] hover:-translate-y-1.5 hover:shadow-[0_16px_40px_rgba(0,0,0,0.2)] hover:scale-[1.02] transition-all duration-300 cursor-pointer relative overflow-hidden text-white min-h-[120px] w-[160px] lg:w-auto" style={{ background: getBankColor(acc.account_name, acc.color_hex) }}>
+                      <div className="flex justify-between items-start z-10 relative mb-3">
+                        <div>
+                          <span className="font-semibold text-[15px] block">{acc.account_name}</span>
+                          <span className="text-[11px] text-white/70 tracking-widest mt-0.5 block">•••• 1234</span>
+                        </div>
+                      </div>
+                      <p className="font-bold text-xl drop-shadow-md z-10 relative">{formatRp(acc.initial_balance)}</p>
+                      {/* Subtle bank icon overlay */}
+                      <div className="absolute right-0 bottom-0 opacity-15 translate-x-3 translate-y-4 pointer-events-none">
+                        <Landmark className="w-[100px] h-[100px]" />
                       </div>
                     </div>
-                    <p className="font-bold text-xl drop-shadow-md z-10 relative">{formatRp(acc.initial_balance)}</p>
-                    {/* Subtle bank icon overlay */}
-                    <div className="absolute right-0 bottom-0 opacity-15 translate-x-3 translate-y-4 pointer-events-none">
-                      <Landmark className="w-[100px] h-[100px]" />
-                    </div>
-                  </div>
-                )) : (
-                  <div className="flex-1 rounded-xl bg-black/5 dark:bg-white/5 flex items-center justify-center text-sm text-[var(--color-text-muted)] border border-black/5 dark:border-white/10">Belum ada rekening</div>
-                )}
+                  )) : (
+                    <div className="flex-1 rounded-xl bg-black/5 dark:bg-white/5 flex items-center justify-center text-sm text-[var(--color-text-muted)] border border-black/5 dark:border-white/10">Belum ada rekening</div>
+                  )}
                 </div>
               </div>
             </div>
@@ -680,7 +680,7 @@ export default function Dashboard() {
                       <span className="text-[9px] xl:text-[10px] text-[var(--color-text-muted)] mt-1 font-medium tracking-wide">Pemasukan</span>
                     </div>
                   </div>
-                  
+
                   <div className="flex-1 space-y-4 w-full">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
@@ -700,7 +700,7 @@ export default function Dashboard() {
                         <span className="text-sm font-semibold text-negative">{formatRp(data.total_expense)}</span>
                       </div>
                     </div>
-                    
+
                     <div className="bg-black/5 dark:bg-white/5 rounded-xl p-4 border border-black/5 dark:border-white/10 hover:-translate-y-1 hover:shadow-lg transition-all duration-300 cursor-pointer">
                       <div className="flex justify-between items-center mb-1">
                         <span className="text-xs text-[var(--color-text-muted)]">Rasio Tabungan</span>
@@ -719,7 +719,7 @@ export default function Dashboard() {
           </div>
 
           {/* Row 2: Arus Kas, Top Pengeluaran */}
-          
+
           {/* Chart Widget */}
           <div className="lg:col-span-8 flex flex-col">
             <div className="glass hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/20 transition-all duration-300 rounded-2xl p-6 flex-1 flex flex-col">
