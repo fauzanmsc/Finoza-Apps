@@ -3,6 +3,8 @@ import { Plus, MoreVertical, Edit2, Trash2, Loader2 } from 'lucide-react';
 import { fetchApi } from '../services/api';
 import { useAuth } from '../store/useAuth';
 import BudgetModal from '../components/budget/BudgetModal';
+import EmptyState from '../components/ui/EmptyState';
+import { PieChart } from 'lucide-react';
 
 export default function Budget() {
   const [budgets, setBudgets] = useState<any[]>([]);
@@ -98,9 +100,13 @@ export default function Budget() {
         <h3 className="font-bold text-lg mb-4">Amplop Kategori</h3>
         
         {budgets.length === 0 ? (
-          <div className="text-center text-slate-500 py-12 border border-dashed border-white/10 rounded-2xl">
-            Belum ada anggaran yang dibuat.
-          </div>
+          <EmptyState
+            icon={PieChart}
+            title="Belum Ada Anggaran"
+            description="Batasi pengeluaran Anda dengan membuat anggaran untuk tiap kategori."
+            actionLabel="Buat Anggaran"
+            onAction={openCreateModal}
+          />
         ) : (
           budgets.map((b, i) => {
             const percent = Math.min(((b.used || 0) / (b.limit || 1)) * 100, 100);

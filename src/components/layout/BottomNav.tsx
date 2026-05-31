@@ -3,12 +3,9 @@ import { Home, BarChart3, WalletCards, User, Plus } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useState } from 'react';
 import TransactionModal from '../transactions/TransactionModal';
-import { fetchApi } from '../../services/api';
-import { useAuth } from '../../store/useAuth';
 
 export default function BottomNav() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const token = useAuth(state => state.token);
 
   const navItems = [
     { to: "/dashboard", icon: Home, label: "Home" },

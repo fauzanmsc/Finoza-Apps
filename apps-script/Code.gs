@@ -109,6 +109,37 @@ function generateUUID() {
   return Utilities.getUuid();
 }
 
+function sanitizeInput(str) {
+  if (typeof str !== 'string') return str;
+  return str.replace(/[<>"'/]/g, function (match) {
+    const map = { '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '/': '&#x2F;' };
+    return map[match];
+  });
+}
+
+function getUserIdFromToken(authToken) {
+  if (!authToken) return null;
+  const sheet = getSheet("tb_users");
+  const data = sheet.getDataRange().getValues();
+  if (data.length <= 1) return null;
+  const headers = data[0];
+  const idCol = headers.indexOf("user_id");
+  const sessionCol = headers.indexOf("session_token");
+  
+  if (idCol === -1) return null;
+
+  for (let i = 1; i < data.length; i++) {
+    if (sessionCol !== -1 && String(data[i][sessionCol]) === String(authToken)) {
+      return data[i][idCol];
+    }
+    // Backward compatibility for existing logged-in users during transition
+    if (String(data[i][idCol]) === String(authToken)) {
+      return data[i][idCol];
+    }
+  }
+  return null;
+}
+
 /**
  * JALANKAN FUNGSI INI SEKALI DI EDITOR UNTUK MENDAPATKAN IZIN GOOGLE DRIVE
  * Pilih fungsi setupPermissions di menu atas, lalu klik Jalankan (Run).
@@ -121,7 +152,8 @@ function setupPermissions() {
 }
 
 function handleGenericUpdate(sheetName, idValue, payload, authToken) {
-  if (!authToken) return createErrorResponse(401, "Unauthorized");
+  const userId = getUserIdFromToken(authToken);
+  if (!userId) return createErrorResponse(401, "Unauthorized");
   const sheet = getSheet(sheetName);
   const data = sheet.getDataRange().getValues();
   if (data.length <= 1) return createErrorResponse(404, "Record not found");
@@ -133,7 +165,7 @@ function handleGenericUpdate(sheetName, idValue, payload, authToken) {
   if (idColIndex === -1) return createErrorResponse(500, "ID column not found");
 
   for (let i = 1; i < data.length; i++) {
-    if (String(data[i][idColIndex]) === String(idValue) && String(data[i][userIdColIndex]) === String(authToken)) {
+    if (String(data[i][idColIndex]) === String(idValue) && String(data[i][userIdColIndex]) === String(userId)) {
       let rowData = data[i];
       for (let key in payload) {
         let colIndex = headers.indexOf(key);
@@ -149,7 +181,8 @@ function handleGenericUpdate(sheetName, idValue, payload, authToken) {
 }
 
 function handleGenericDelete(sheetName, idValue, authToken) {
-  if (!authToken) return createErrorResponse(401, "Unauthorized");
+  const userId = getUserIdFromToken(authToken);
+  if (!userId) return createErrorResponse(401, "Unauthorized");
   const sheet = getSheet(sheetName);
   const data = sheet.getDataRange().getValues();
   if (data.length <= 1) return createErrorResponse(404, "Record not found");
@@ -159,7 +192,7 @@ function handleGenericDelete(sheetName, idValue, authToken) {
   const userIdColIndex = headers.indexOf("user_id");
 
   for (let i = 1; i < data.length; i++) {
-    if (String(data[i][idColIndex]) === String(idValue) && String(data[i][userIdColIndex]) === String(authToken)) {
+    if (String(data[i][idColIndex]) === String(idValue) && String(data[i][userIdColIndex]) === String(userId)) {
       sheet.deleteRow(i + 1);
       return createSuccessResponse(200, "Delete successful", {});
     }
@@ -207,9 +240,18 @@ function handleLogin(email, password) {
     if (String(row[emailCol]).trim().toLowerCase() === String(email).trim().toLowerCase()) {
       // Email ditemukan, cek password
       if (String(row[passCol]).trim() === String(password).trim()) {
+        // Generate and save Session Token
+        const sessionToken = generateUUID();
+        let sessionCol = headers.indexOf("session_token");
+        if (sessionCol === -1) {
+           sheet.getRange(1, headers.length + 1).setValue("session_token");
+           sessionCol = headers.length;
+        }
+        sheet.getRange(i + 1, sessionCol + 1).setValue(sessionToken);
+
         // Password cocok → login sukses
         return createSuccessResponse(200, "Login berhasil!", {
-          authToken: row[idCol],
+          authToken: sessionToken,
           user: {
             full_name: row[nameCol] || '',
             email: row[emailCol] || '',
@@ -230,16 +272,19 @@ function handleLogin(email, password) {
 
 // ACCOUNTS
 function handleGetAccounts(authToken) {
+  const userId = getUserIdFromToken(authToken);
+  if (!userId) return createErrorResponse(401, "Unauthorized");
   const sheet = getSheet("tb_accounts");
-  return createSuccessResponse(200, "Accounts retrieved", mapIdField(getRowsData(sheet).filter(r => String(r.user_id) === String(authToken))));
+  return createSuccessResponse(200, "Accounts retrieved", mapIdField(getRowsData(sheet).filter(r => String(r.user_id) === String(userId))));
 }
 
 function handleCreateAccount(authToken, payload) {
-  if (!authToken) return createErrorResponse(401, "Unauthorized");
+  const userId = getUserIdFromToken(authToken);
+  if (!userId) return createErrorResponse(401, "Unauthorized");
   const sheet = getSheet("tb_accounts");
   const newId = 'ACC-' + generateUUID().substring(0,8);
   sheet.appendRow([
-    newId, authToken, payload.account_name || '', payload.account_type || 'Bank', 
+    newId, userId, sanitizeInput(payload.account_name) || '', sanitizeInput(payload.account_type) || 'Bank', 
     payload.initial_balance || 0, payload.color_hex || '#1E3A8A', payload.icon_name || ''
   ]);
   return createSuccessResponse(201, "Account created", { ...payload, id: newId });
@@ -247,48 +292,56 @@ function handleCreateAccount(authToken, payload) {
 
 // CATEGORIES
 function handleGetCategories(authToken) {
+  const userId = getUserIdFromToken(authToken);
+  if (!userId) return createErrorResponse(401, "Unauthorized");
   const sheet = getSheet("tb_categories");
-  return createSuccessResponse(200, "Categories retrieved", mapIdField(getRowsData(sheet).filter(r => String(r.user_id) === String(authToken))));
+  return createSuccessResponse(200, "Categories retrieved", mapIdField(getRowsData(sheet).filter(r => String(r.user_id) === String(userId))));
 }
 
 function handleCreateCategory(authToken, payload) {
-  if (!authToken) return createErrorResponse(401, "Unauthorized");
+  const userId = getUserIdFromToken(authToken);
+  if (!userId) return createErrorResponse(401, "Unauthorized");
   const sheet = getSheet("tb_categories");
   const newId = 'CAT-' + generateUUID().substring(0,8);
   sheet.appendRow([
-    newId, authToken, payload.category_type || 'Expense', payload.name || '', payload.color_hex || '#F43F5E', payload.icon_name || 'tags'
+    newId, userId, sanitizeInput(payload.category_type) || 'Expense', sanitizeInput(payload.name) || '', sanitizeInput(payload.color_hex) || '#F43F5E', sanitizeInput(payload.icon_name) || 'tags'
   ]);
   return createSuccessResponse(201, "Category created", { ...payload, id: newId });
 }
 
 // TRANSACTIONS
 function handleCreateTransaction(authToken, payload) {
-  if (!authToken) return createErrorResponse(401, "Unauthorized");
+  const userId = getUserIdFromToken(authToken);
+  if (!userId) return createErrorResponse(401, "Unauthorized");
   const sheet = getSheet("tb_transactions");
   const txId = 'TX-' + generateUUID().substring(0,8);
   const now = new Date().toISOString();
   
   sheet.appendRow([
-    txId, authToken, payload.tx_date || now, payload.tx_type, payload.category_id || '',
-    payload.account_src_id, payload.account_dst_id || '', payload.amount, payload.note || '', '', now
+    txId, userId, payload.tx_date || now, sanitizeInput(payload.tx_type), sanitizeInput(payload.category_id) || '',
+    sanitizeInput(payload.account_src_id), sanitizeInput(payload.account_dst_id) || '', payload.amount, sanitizeInput(payload.note) || '', '', now
   ]);
 
   return createSuccessResponse(201, "Transaction created", { ...payload, id: txId });
 }
 
 function handleGetTransactions(authToken) {
+  const userId = getUserIdFromToken(authToken);
+  if (!userId) return createErrorResponse(401, "Unauthorized");
   const sheet = getSheet("tb_transactions");
-  const txs = getRowsData(sheet).filter(r => String(r.user_id) === String(authToken));
+  const txs = getRowsData(sheet).filter(r => String(r.user_id) === String(userId));
   return createSuccessResponse(200, "Transactions retrieved", mapIdField(txs).reverse());
 }
 
 // BUDGETS
 function handleGetBudgets(authToken) {
+  const userId = getUserIdFromToken(authToken);
+  if (!userId) return createErrorResponse(401, "Unauthorized");
   const sheet = getSheet("tb_budgets");
-  const budgets = mapIdField(getRowsData(sheet).filter(r => String(r.user_id) === String(authToken)));
+  const budgets = mapIdField(getRowsData(sheet).filter(r => String(r.user_id) === String(userId)));
   
   const txSheet = getSheet("tb_transactions");
-  const txs = getRowsData(txSheet).filter(r => String(r.user_id) === String(authToken) && r.tx_type === 'Expense');
+  const txs = getRowsData(txSheet).filter(r => String(r.user_id) === String(userId) && r.tx_type === 'Expense');
   
   const currentMonth = new Date().getMonth() + 1;
   const currentYear = new Date().getFullYear();
@@ -311,19 +364,21 @@ function handleGetBudgets(authToken) {
 }
 
 function handleCreateBudget(authToken, payload) {
-  if (!authToken) return createErrorResponse(401, "Unauthorized");
+  const userId = getUserIdFromToken(authToken);
+  if (!userId) return createErrorResponse(401, "Unauthorized");
   const sheet = getSheet("tb_budgets");
   const newId = 'BDG-' + generateUUID().substring(0,8);
   const now = new Date().toISOString();
   sheet.appendRow([
-    newId, authToken, payload.category_id || '', payload.name || '', payload.limit || 0, payload.color || 'bg-[var(--color-stabilo)]', now
+    newId, userId, sanitizeInput(payload.category_id) || '', sanitizeInput(payload.name) || '', payload.limit || 0, sanitizeInput(payload.color) || 'bg-[var(--color-stabilo)]', now
   ]);
   return createSuccessResponse(201, "Budget created", { ...payload, id: newId });
 }
 
 // PROFILE
 function handleUpdateProfile(authToken, payload) {
-  if (!authToken) return createErrorResponse(401, "Unauthorized");
+  const userId = getUserIdFromToken(authToken);
+  if (!userId) return createErrorResponse(401, "Unauthorized");
   
   let profileUrl = payload.profile_picture_url;
   
@@ -333,7 +388,7 @@ function handleUpdateProfile(authToken, payload) {
       const parts = payload.base64_image.split(',');
       const contentType = parts[0].split(':')[1].split(';')[0];
       const encoded = parts[1];
-      const blob = Utilities.newBlob(Utilities.base64Decode(encoded), contentType, "Profile_" + authToken + "_" + new Date().getTime());
+      const blob = Utilities.newBlob(Utilities.base64Decode(encoded), contentType, "Profile_" + userId + "_" + new Date().getTime());
       
       const folders = DriveApp.getFoldersByName("Finoza_Profiles");
       let folder;
@@ -365,13 +420,13 @@ function handleUpdateProfile(authToken, payload) {
   }
 
   for (let i = 1; i < data.length; i++) {
-    if (String(data[i][idColIndex]) === String(authToken)) {
+    if (String(data[i][idColIndex]) === String(userId)) {
       if (profileUrl) {
          sheet.getRange(i + 1, profilePicColIndex + 1).setValue(profileUrl);
       }
       if (payload.full_name) {
          const nameColIndex = headers.indexOf("full_name");
-         if (nameColIndex !== -1) sheet.getRange(i + 1, nameColIndex + 1).setValue(payload.full_name);
+         if (nameColIndex !== -1) sheet.getRange(i + 1, nameColIndex + 1).setValue(sanitizeInput(payload.full_name));
       }
       if (payload.password) {
          const passColIndex = headers.indexOf("password");
@@ -385,29 +440,33 @@ function handleUpdateProfile(authToken, payload) {
 
 // DEBTS
 function handleGetDebts(authToken) {
+  const userId = getUserIdFromToken(authToken);
+  if (!userId) return createErrorResponse(401, "Unauthorized");
   const sheet = getSheet("tb_debts");
-  return createSuccessResponse(200, "Debts retrieved", mapIdField(getRowsData(sheet).filter(r => String(r.user_id) === String(authToken))));
+  return createSuccessResponse(200, "Debts retrieved", mapIdField(getRowsData(sheet).filter(r => String(r.user_id) === String(userId))));
 }
 
 function handleCreateDebt(authToken, payload) {
-  if (!authToken) return createErrorResponse(401, "Unauthorized");
+  const userId = getUserIdFromToken(authToken);
+  if (!userId) return createErrorResponse(401, "Unauthorized");
   const sheet = getSheet("tb_debts");
   const newId = 'DBT-' + generateUUID().substring(0,8);
   const now = new Date().toISOString();
   sheet.appendRow([
-    newId, authToken, payload.type || 'Saya Berhutang', payload.name || '', payload.amount || 0, payload.due || now, 'Active', now
+    newId, userId, sanitizeInput(payload.type) || 'Saya Berhutang', sanitizeInput(payload.name) || '', payload.amount || 0, payload.due || now, 'Active', now
   ]);
   return createSuccessResponse(201, "Debt created", { ...payload, id: newId });
 }
 
 function handleGetDashboardData(authToken) {
-  if (!authToken) return createErrorResponse(401, "Unauthorized");
+  const userId = getUserIdFromToken(authToken);
+  if (!userId) return createErrorResponse(401, "Unauthorized");
 
   const txSheet = getSheet("tb_transactions");
   const accSheet = getSheet("tb_accounts");
   
-  const accounts = mapIdField(getRowsData(accSheet).filter(r => String(r.user_id) === String(authToken)));
-  const txs = mapIdField(getRowsData(txSheet).filter(r => String(r.user_id) === String(authToken)));
+  const accounts = mapIdField(getRowsData(accSheet).filter(r => String(r.user_id) === String(userId)));
+  const txs = mapIdField(getRowsData(txSheet).filter(r => String(r.user_id) === String(userId)));
 
   let netBalance = 0;
   let totalIncome = 0;
@@ -482,19 +541,21 @@ function handleGetDashboardData(authToken) {
 }
 
 function handleGenerateDummyData(authToken) {
-  if (!authToken) return createErrorResponse(401, "Unauthorized");
+  const userId = getUserIdFromToken(authToken);
+  if (!userId) return createErrorResponse(401, "Unauthorized");
   // [Logic hidden for brevity as user wants CRUD to work, this isn't strictly necessary to rewrite if not broken]
   return createSuccessResponse(200, "Dummy data feature retained. For fresh starts.", null);
 }
 
 function handleGetReports(authToken, payload) {
-  if (!authToken) return createErrorResponse(401, "Unauthorized");
+  const userId = getUserIdFromToken(authToken);
+  if (!userId) return createErrorResponse(401, "Unauthorized");
   
   const month = payload.month || new Date().getMonth() + 1;
   const year = payload.year || new Date().getFullYear();
   
   const txSheet = getSheet("tb_transactions");
-  const txs = getRowsData(txSheet).filter(r => String(r.user_id) === String(authToken));
+  const txs = getRowsData(txSheet).filter(r => String(r.user_id) === String(userId));
   
   let totalIncome = 0;
   let totalExpense = 0;

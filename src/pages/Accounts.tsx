@@ -3,6 +3,7 @@ import { WalletCards, Plus, Loader2, MoreVertical, Edit2, Trash2, X, ArrowUpRigh
 import { fetchApi } from '../services/api';
 import { useAuth } from '../store/useAuth';
 import AccountModal from '../components/accounts/AccountModal';
+import EmptyState from '../components/ui/EmptyState';
 
 const ICON_MAP: Record<string, any> = {
   WalletCards, Building2, Smartphone, Banknote, CreditCard, PiggyBank, Landmark, CircleDollarSign, Wallet
@@ -145,8 +146,14 @@ export default function Accounts() {
         })}
         
         {accounts.length === 0 && (
-          <div className="col-span-full py-12 text-center text-slate-500 border border-dashed border-white/10 rounded-2xl">
-            Belum ada rekening terdaftar.
+          <div className="col-span-full">
+            <EmptyState
+              icon={WalletCards}
+              title="Belum Ada Rekening"
+              description="Anda belum memiliki rekening atau aset. Tambahkan sekarang untuk mulai melacak keuangan Anda."
+              actionLabel="Tambah Rekening"
+              onAction={openCreateModal}
+            />
           </div>
         )}
       </div>

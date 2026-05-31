@@ -1,4 +1,5 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import { AlignLeft, X, Sun, Moon } from 'lucide-react';
 import Sidebar from './Sidebar';
@@ -8,6 +9,7 @@ import { useTheme } from '../../store/useTheme';
 export default function AppLayout() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const { theme, toggleTheme, isSidebarCompact } = useTheme();
+  const location = useLocation();
 
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden text-[var(--color-text-foreground)] transition-all duration-300">
@@ -59,7 +61,18 @@ export default function AppLayout() {
         </div>
 
         <div className="flex-1 overflow-y-auto w-full max-w-[1400px] mx-auto pb-20 lg:pb-0">
-          <Outlet />
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={location.pathname}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              className="h-full"
+            >
+              <Outlet />
+            </motion.div>
+          </AnimatePresence>
         </div>
       </main>
 

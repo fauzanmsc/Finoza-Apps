@@ -3,6 +3,7 @@ import { Users, Clock, AlertTriangle, Plus, MoreVertical, Edit2, Trash2, Loader2
 import { fetchApi } from '../services/api';
 import { useAuth } from '../store/useAuth';
 import DebtModal from '../components/debts/DebtModal';
+import EmptyState from '../components/ui/EmptyState';
 
 export default function Debts() {
   const [debts, setDebts] = useState<any[]>([]);
@@ -82,9 +83,13 @@ export default function Debts() {
 
       <div className="glass rounded-2xl overflow-hidden">
         {debts.length === 0 ? (
-          <div className="text-center text-slate-500 py-12">
-            Belum ada catatan hutang / piutang.
-          </div>
+          <EmptyState
+            icon={Users}
+            title="Bebas Hutang Piutang"
+            description="Belum ada catatan hutang atau piutang. Catat jika ada agar tidak lupa!"
+            actionLabel="Catat Baru"
+            onAction={openCreateModal}
+          />
         ) : (
           <div className="divide-y divide-white/5">
             {debts.map((d, i) => (

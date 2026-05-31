@@ -25,13 +25,13 @@ export const useTheme = create<ThemeState>((set) => ({
     return { theme: newTheme };
   }),
 
-  toggleSidebarCompact: () => set((state) => {
+  toggleSidebarCompact: () => set((state: any) => {
     const newCompact = !state.isSidebarCompact;
     localStorage.setItem('Moniq-Sidebar-Compact', String(newCompact));
     return { isSidebarCompact: newCompact };
   }),
   
-  initTheme: () => set((state) => {
+  initTheme: () => set((_state) => {
     const currentTheme = localStorage.getItem('Moniq-Theme') || 'dark';
     if (currentTheme === 'light') {
       document.documentElement.classList.add('light');

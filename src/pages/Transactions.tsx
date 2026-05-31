@@ -3,6 +3,7 @@ import { ArrowUpRight, ArrowDownRight, ArrowLeftRight, Search, Filter, Loader2, 
 import { fetchApi } from '../services/api';
 import { useAuth } from '../store/useAuth';
 import TransactionModal from '../components/transactions/TransactionModal';
+import EmptyState from '../components/ui/EmptyState';
 
 export default function Transactions() {
   const [txs, setTxs] = useState<any[]>([]);
@@ -115,10 +116,13 @@ export default function Transactions() {
 
       <div className="glass rounded-2xl overflow-hidden">
         {filteredTxs.length === 0 ? (
-          <div className="p-12 flex flex-col items-center justify-center text-slate-500">
-            <FileText className="w-12 h-12 mb-4 opacity-50" />
-            <p>{searchQuery ? 'Pencarian tidak ditemukan.' : 'Belum ada data transaksi.'}</p>
-          </div>
+          <EmptyState
+            icon={FileText}
+            title={searchQuery ? 'Tidak Ditemukan' : 'Belum Ada Transaksi'}
+            description={searchQuery ? 'Tidak ada transaksi yang cocok dengan pencarian Anda.' : 'Mulai catat pemasukan atau pengeluaran pertama Anda hari ini.'}
+            actionLabel={!searchQuery ? 'Catat Transaksi' : undefined}
+            onAction={!searchQuery ? () => { setEditingTx(null); setIsModalOpen(true); } : undefined}
+          />
         ) : (
           <div className="divide-y divide-white/5">
             {filteredTxs.map((tx: any, i: number) => {

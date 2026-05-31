@@ -35,7 +35,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
   const { theme, toggleTheme, isSidebarCompact, toggleSidebarCompact } = useTheme();
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
-  const [isTransactionsOpen, setIsTransactionsOpen] = useState(false);
+
   const [transactionModalType, setTransactionModalType] = useState<string | null>(null);
   const navigate = useNavigate();
   const [imgError, setImgError] = useState(false);
@@ -46,7 +46,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
     navigate('/login');
   };
 
-  const navItems = [
+  const navItems: any[] = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
     { icon: ArrowLeftRight, label: 'Transaksi', path: '/transactions' },
     { icon: WalletCards, label: 'Aset & Rekening', path: '/accounts' },
@@ -103,7 +103,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
                   {/* Dropdown Items */}
                   {item.isOpen && !isSidebarCompact && item.subItems && (
                     <div className="pl-11 pr-3 space-y-1 mt-1 animate-[fadeIn_0.2s_ease-out]">
-                      {item.subItems.map((sub, i) => (
+                      {item.subItems.map((sub: any, i: number) => (
                         <button
                           key={i}
                           onClick={() => setTransactionModalType(sub.action)}

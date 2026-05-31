@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { fetchApi } from '../services/api';
 import { useAuth } from '../store/useAuth';
+import EmptyState from '../components/ui/EmptyState';
 
 const ICON_MAP: Record<string, any> = {
   'pizza': Pizza,
@@ -175,10 +176,13 @@ export default function Categories() {
         {incomes.length > 0 && renderCategoryGroup('Pemasukan', incomes)}
         {transfers.length > 0 && renderCategoryGroup('Transfer', transfers)}
         {categories.length === 0 && (
-          <div className="text-center py-20 text-[var(--color-text-muted)] glass rounded-3xl">
-            <Tags className="w-12 h-12 mx-auto mb-4 opacity-20" />
-            <p>Belum ada kategori yang dibuat.</p>
-          </div>
+          <EmptyState
+            icon={Tags}
+            title="Belum Ada Kategori"
+            description="Kategori membantu Anda mengelompokkan transaksi. Buat kategori pertama Anda sekarang."
+            actionLabel="Tambah Kategori"
+            onAction={openNewModal}
+          />
         )}
       </div>
 

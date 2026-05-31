@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Calendar, ChevronDown, MoreHorizontal, ArrowUpRight, ArrowDownRight, Wallet, Loader2, Plus, LineChart as LineChartIcon, User, Eye, EyeOff } from 'lucide-react';
-import { AreaChart, Area, Tooltip, ResponsiveContainer, XAxis, YAxis, PieChart, Pie, Cell, Legend } from 'recharts';
+import { MoreHorizontal, ArrowUpRight, ArrowDownRight, Wallet, Loader2, User, Eye, EyeOff } from 'lucide-react';
+import { AreaChart, Area, Tooltip, ResponsiveContainer, XAxis, YAxis, PieChart, Pie, Cell } from 'recharts';
 import TransactionModal from '../components/transactions/TransactionModal';
 import { fetchApi } from '../services/api';
 import { useAuth } from '../store/useAuth';
+import OnboardingModal from '../components/ui/OnboardingModal';
 
 export default function Dashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -14,6 +15,7 @@ export default function Dashboard() {
   const [periodFilter, setPeriodFilter] = useState('weekly');
   const [imgError, setImgError] = useState(false);
   const [showBalance, setShowBalance] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const token = useAuth(state => state.token);
   const user = useAuth(state => state.user);
@@ -32,15 +34,15 @@ export default function Dashboard() {
       setAllTransactions(transactions);
 
       const now = new Date();
-      const currentMonthTx = transactions.filter(tx => {
+      const currentMonthTx = transactions.filter((tx: any) => {
         const d = new Date(tx.tx_date);
         return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
       });
 
-      const total_income = currentMonthTx.filter(tx => tx.tx_type === 'Income').reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0);
-      const total_expense = currentMonthTx.filter(tx => tx.tx_type === 'Expense').reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0);
+      const total_income = currentMonthTx.filter((tx: any) => tx.tx_type === 'Income').reduce((sum: number, tx: any) => sum + (Number(tx.amount) || 0), 0);
+      const total_expense = currentMonthTx.filter((tx: any) => tx.tx_type === 'Expense').reduce((sum: number, tx: any) => sum + (Number(tx.amount) || 0), 0);
 
-      const expenseByCategory = currentMonthTx.filter(tx => tx.tx_type === 'Expense').reduce((acc, tx) => {
+      const expenseByCategory = currentMonthTx.filter((tx: any) => tx.tx_type === 'Expense').reduce((acc: any, tx: any) => {
         const cat = tx.category_id || 'Lainnya';
         if (!acc[cat]) acc[cat] = 0;
         acc[cat] += (Number(tx.amount) || 0);
@@ -52,9 +54,9 @@ export default function Dashboard() {
         .sort((a, b) => b.amount - a.amount)
         .slice(0, 5);
 
-      const accountsTotal = accounts.reduce((sum, acc) => sum + (Number(acc.initial_balance) || 0), 0);
-      const allTimeIncome = transactions.filter(tx => tx.tx_type === 'Income').reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0);
-      const allTimeExpense = transactions.filter(tx => tx.tx_type === 'Expense').reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0);
+      const accountsTotal = accounts.reduce((sum: number, acc: any) => sum + (Number(acc.initial_balance) || 0), 0);
+      const allTimeIncome = transactions.filter((tx: any) => tx.tx_type === 'Income').reduce((sum: number, tx: any) => sum + (Number(tx.amount) || 0), 0);
+      const allTimeExpense = transactions.filter((tx: any) => tx.tx_type === 'Expense').reduce((sum: number, tx: any) => sum + (Number(tx.amount) || 0), 0);
       const net_balance = accountsTotal + allTimeIncome - allTimeExpense;
 
       const recent_transactions = [...transactions].sort((a, b) => new Date(b.tx_date).getTime() - new Date(a.tx_date).getTime()).slice(0, 5);
@@ -72,6 +74,11 @@ export default function Dashboard() {
       setData({ net_balance: 0, total_income: 0, total_expense: 0, top_expenses: [], recent_transactions: [], accounts: [] });
     }
     setIsLoading(false);
+
+    const hasOnboarded = localStorage.getItem('finoza_onboarded');
+    if (!hasOnboarded) {
+      setShowOnboarding(true);
+    }
   };
 
   useEffect(() => {
@@ -530,6 +537,12 @@ export default function Dashboard() {
       </div>
 
       <TransactionModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onRefresh={loadData} initialData={modalInitialData} />
+      {showOnboarding && (
+        <OnboardingModal onClose={() => {
+          setShowOnboarding(false);
+          localStorage.setItem('finoza_onboarded', 'true');
+        }} />
+      )}
     </div>
   );
 }
