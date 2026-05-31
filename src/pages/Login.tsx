@@ -73,28 +73,28 @@ export default function Login() {
             alt="Finoza Apps"
             className="h-16 md:h-20 object-contain mx-auto md:mx-0 mb-4"
           />
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-[var(--color-text-foreground)] tracking-tighter leading-tight antialiased">
-            Kelola <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-stabilo)] to-yellow-300 drop-shadow-sm">Cerdas,</span><br/>Finansial Bebas
+          <h1 className="text-4xl sm:text-5xl md:text-[60px] font-extrabold text-[var(--color-text-foreground)] tracking-tight leading-[1.1] antialiased">
+            Smart <span className="text-[var(--color-stabilo)] drop-shadow-sm">Tracker,</span><br/><span className="whitespace-nowrap">Growth Better</span>
           </h1>
           <p className="text-slate-400 text-base sm:text-lg md:text-xl max-w-md mx-auto md:mx-0 font-medium leading-relaxed antialiased">
-            Platform manajemen finansial pintar untuk mengontrol aset, hutang, dan anggaran bulanan Anda.
+            Platform manajemen keuangan pintar untuk mengontrol aset, hutang, dan anggaran bulananmu.
           </p>
         </div>
 
         {/* Right Side: Glassmorphism Login Card */}
         <div className="w-full max-w-md">
-          <div className={`bg-surface/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl relative overflow-hidden transition-transform ${shake ? 'animate-[shakeX_0.5s_ease-in-out]' : ''}`}>
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[var(--color-stabilo)] to-transparent opacity-50" />
+          <div className={`bg-[#121620] backdrop-blur-xl border border-white/5 rounded-3xl p-8 shadow-2xl relative overflow-hidden transition-transform ${shake ? 'animate-[shakeX_0.5s_ease-in-out]' : ''}`}>
+            <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-[var(--color-stabilo)] to-transparent opacity-50" />
 
             <div className="mb-8">
-              <h2 className="text-2xl font-bold text-[var(--color-text-foreground)] mb-2">Selamat Datang Kembali</h2>
+              <h2 className="text-2xl font-bold text-[var(--color-text-foreground)] mb-2">Selamat Datang di Finoza</h2>
               <p className="text-slate-400 text-sm">Masuk ke akun Finoza Anda untuk melanjutkan.</p>
             </div>
 
             <form onSubmit={handleLogin} className="space-y-6">
               <div className="space-y-5">
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-2 uppercase tracking-wider">Email Address</label>
+                  <label className="block text-[11px] font-bold text-slate-400 mb-2 uppercase tracking-wider">Email Address</label>
                   <div className="relative group">
                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-[var(--color-stabilo)] transition-colors" />
                     <input
@@ -102,7 +102,7 @@ export default function Login() {
                       value={email}
                       onChange={(e) => { setEmail(e.target.value); setError(''); }}
                       placeholder="fauzan@finoza.id"
-                      className="w-full bg-black/20 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white placeholder:text-slate-600 focus:outline-none focus:border-[var(--color-stabilo)] focus:bg-black/40 focus:ring-1 focus:ring-[var(--color-stabilo)] transition-all"
+                      className="w-full bg-[#1c2230] border-none rounded-xl py-3.5 pl-12 pr-4 text-white placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-[var(--color-stabilo)] transition-all text-sm"
                       required
                     />
                   </div>
@@ -110,8 +110,8 @@ export default function Login() {
 
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">Password</label>
-                    <a href="#" className="text-xs text-[var(--color-stabilo)] hover:underline">Lupa Password?</a>
+                    <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Password</label>
+                    <a href="#" className="text-[11px] font-bold text-[var(--color-stabilo)] hover:underline">Lupa Password?</a>
                   </div>
                   <div className="relative group">
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-[var(--color-stabilo)] transition-colors" />
@@ -119,8 +119,8 @@ export default function Login() {
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(e) => { setPassword(e.target.value); setError(''); }}
-                      placeholder="••••••••"
-                      className="w-full bg-black/20 border border-white/5 rounded-2xl py-4 pl-12 pr-12 text-white placeholder:text-slate-600 focus:outline-none focus:border-[var(--color-stabilo)] focus:bg-black/40 focus:ring-1 focus:ring-[var(--color-stabilo)] transition-all"
+                      placeholder="••••"
+                      className="w-full bg-[#1c2230] border-none rounded-xl py-3.5 pl-12 pr-12 text-white placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-[var(--color-stabilo)] transition-all text-sm tracking-widest"
                       required
                     />
                     <button
@@ -138,13 +138,13 @@ export default function Login() {
               <button
                 type="submit"
                 disabled={isLoading || !!successMsg}
-                className="w-full bg-[var(--color-stabilo)] hover:bg-[#b3e600] text-black font-bold py-4 rounded-2xl flex items-center justify-center gap-2 transition-all disabled:opacity-70 shadow-[0_0_20px_rgba(204,255,0,0.2)] hover:shadow-[0_0_30px_rgba(204,255,0,0.4)]"
+                className="w-full bg-[var(--color-stabilo)] hover:bg-[#b3e600] text-black font-extrabold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-70 shadow-[0_0_20px_rgba(204,255,0,0.2)] hover:shadow-[0_0_30px_rgba(204,255,0,0.4)] text-sm"
               >
                 {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : successMsg ? (
                   <><CheckCircle2 className="w-5 h-5" /> Berhasil!</>
                 ) : (
                   <>
-                    Sign In <ArrowRight className="w-5 h-5" />
+                    Sign In <ArrowRight className="w-4 h-4" />
                   </>
                 )}
               </button>

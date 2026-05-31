@@ -345,7 +345,8 @@ function handleUpdateProfile(authToken, payload) {
       }
       
       const file = folder.createFile(blob);
-      profileUrl = "https://lh3.googleusercontent.com/d/" + file.getId();
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      profileUrl = "https://drive.google.com/thumbnail?id=" + file.getId() + "&sz=w500";
     } catch(e) {
       return createErrorResponse(500, "Gagal mengunggah foto: " + e.message);
     }
