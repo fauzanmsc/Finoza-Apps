@@ -25,8 +25,9 @@
     --color-glass-border: rgba(255, 255, 255, 0.08);
     --color-glass-shadow: rgba(0, 0, 0, 0.3);
     --color-glow-stabilo: rgba(212, 255, 0, 0.3);
+    --color-stabilo-text: var(--color-stabilo);
   }
-  
+
   :root.light {
     color-scheme: light;
     --color-background: #F8FAFC;
@@ -39,6 +40,8 @@
     --color-glass-border: rgba(0, 0, 0, 0.06);
     --color-glass-shadow: rgba(150, 173, 195, 0.2);
     --color-stabilo: #ccff00;
+    --color-stabilo-text: #94cd22;
+    /* High contrast lime-700 for text/borders in light mode */
     --color-glow-stabilo: rgba(204, 255, 0, 0.6);
     --color-positive: #10B981;
     --color-negative: #EF4444;
@@ -50,20 +53,16 @@
   }
 }
 
-/* Custom scrollbar */
+/* Hide scrollbar globally but allow scrolling */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  display: none;
 }
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: var(--color-surface-light);
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #3b4b72;
+
+* {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
 }
 
 /* Glassmorphism utility */
@@ -76,39 +75,83 @@
 }
 
 /* Prevent horizontal scroll globally */
-html, body, #root {
+html,
+body,
+#root {
   overflow-x: hidden;
   max-width: 100vw;
 }
 
 /* Hide scrollbar utility */
-.scrollbar-hide::-webkit-scrollbar { display: none; }
-.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
 
-/* Force all Loader2/spinner SVGs to stabilo color */
-.animate-spin { color: var(--color-stabilo) !important; }
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
 
-/* Stabilo button text color: white in light mode, dark navy in dark mode */
+/* Force all Loader2/spinner SVGs to stabilo text color */
+.animate-spin {
+  color: var(--color-stabilo-text) !important;
+}
+
+/* Override stabilo text and border classes for light mode contrast */
+.text-\[var\(--color-stabilo\)\] {
+  color: var(--color-stabilo-text) !important;
+}
+
+.border-\[var\(--color-stabilo\)\] {
+  border-color: var(--color-stabilo-text) !important;
+}
+
+/* Stabilo button text color: dark navy in both modes */
 .text-stabilo-btn {
   color: #0f172a;
 }
+
 :root.light .text-stabilo-btn {
-  color: #ffffff;
+  color: #0f172a;
 }
 
 @keyframes bounce-slow {
-  0%, 100% { transform: translateY(-5%); }
-  50% { transform: translateY(5%); }
+
+  0%,
+  100% {
+    transform: translateY(-5%);
+  }
+
+  50% {
+    transform: translateY(5%);
+  }
 }
 
 @keyframes gradient-bg {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 @keyframes progress-bar {
-  0% { width: 0%; opacity: 1; }
-  80% { width: 100%; opacity: 1; }
-  100% { width: 100%; opacity: 0; }
-}
+  0% {
+    width: 0%;
+    opacity: 1;
+  }
 
+  80% {
+    width: 100%;
+    opacity: 1;
+  }
+
+  100% {
+    width: 100%;
+    opacity: 0;
+  }
+}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Calendar, WalletCards, FileText, ArrowUpRight, ArrowDownRight, ArrowLeftRight, Tags } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { fetchApi } from '../../services/api';
@@ -17,7 +18,11 @@ export default function TransactionModal({ isOpen, onClose, onRefresh, initialDa
   const [txType, setTxType] = useState<TxType>('Expense');
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
-  const [txDate, setTxDate] = useState(new Date().toISOString().split('T')[0]);
+  const getLocalDate = () => {
+    const d = new Date();
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+  };
+  const [txDate, setTxDate] = useState(getLocalDate());
   const [accountId, setAccountId] = useState('');
   const [accounts, setAccounts] = useState<any[]>([]);
   const [categoryId, setCategoryId] = useState('');
@@ -53,12 +58,12 @@ export default function TransactionModal({ isOpen, onClose, onRefresh, initialDa
         setTxType((initialData.tx_type || 'Expense') as TxType);
         setAmount(formatRupiah(initialData.amount?.toString() || '0'));
         setNote(initialData.note || '');
-        setTxDate(initialData.tx_date || new Date().toISOString().split('T')[0]);
+        setTxDate(initialData.tx_date || getLocalDate());
       } else {
         setTxType('Expense');
         setAmount('');
         setNote('');
-        setTxDate(new Date().toISOString().split('T')[0]);
+        setTxDate(getLocalDate());
       }
     }
   }, [initialData, isOpen, token]);
@@ -111,10 +116,10 @@ export default function TransactionModal({ isOpen, onClose, onRefresh, initialDa
     return rupiah ? 'Rp ' + rupiah : '';
   };
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 sm:p-0">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}></div>
-      <div className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto bg-surface border border-white/10 rounded-3xl shadow-2xl animate-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-md bg-surface border border-white/10 rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
         
         <div className="flex items-center justify-between p-6 border-b border-white/5">
           <h2 className="text-xl font-bold">{initialData ? 'Edit Transaksi' : 'Catat Transaksi'}</h2>
@@ -159,7 +164,7 @@ export default function TransactionModal({ isOpen, onClose, onRefresh, initialDa
               />
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                <div>
                   <label className="text-sm text-slate-400 block mb-2">Tanggal</label>
                   <div className="relative">
@@ -192,7 +197,7 @@ export default function TransactionModal({ isOpen, onClose, onRefresh, initialDa
                </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm text-slate-400 block mb-2">Kategori</label>
                 <div className="relative">
@@ -235,6 +240,7 @@ export default function TransactionModal({ isOpen, onClose, onRefresh, initialDa
           </button>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -72,9 +72,9 @@ export default function DebtModal({ isOpen, onClose, onRefresh, initialData }: D
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end lg:items-center justify-center p-4 sm:p-0">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-6 sm:p-0">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}></div>
-      <div className="relative w-full max-w-md bg-surface border border-white/10 rounded-t-3xl lg:rounded-3xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-10 lg:slide-in-from-bottom-0 lg:zoom-in-95 duration-200">
+      <div className="relative w-full max-w-md glass border border-white/10 rounded-3xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col animate-in zoom-in-95 duration-200">
         
         <div className="flex items-center justify-between p-6 border-b border-white/5">
           <h2 className="text-xl font-bold">{initialData ? 'Edit Hutang / Piutang' : 'Catat Baru'}</h2>

@@ -1,4 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
+import { createPortal } from 'react-dom';
 import {
   LayoutDashboard,
   ArrowLeftRight,
@@ -55,7 +56,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
     { icon: ArrowLeftRight, label: 'Transaksi', path: '/transactions' },
     { icon: WalletCards, label: 'Aset & Rekening', path: '/accounts' },
-    { icon: FileText, label: 'Jurnal', path: '/journal' },
+    { icon: FileText, label: 'Jurnal Keuangan', path: '/journal' },
     { icon: PieChart, label: 'Anggaran Bulanan', path: '/budget' },
     { icon: Users, label: 'Hutang Piutang', path: '/debts' },
     { icon: BarChart3, label: 'Laporan Bulanan', path: '/reports' },
@@ -176,11 +177,11 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
             onClick={() => setIsProfileModalOpen(true)}
           >
             {user?.profile_picture_url && !imgError && user.profile_picture_url !== 'null' ? (
-              <img 
-                src={`${user.profile_picture_url}${imgCacheBuster}`} 
-                alt="Profile" 
+              <img
+                src={`${user.profile_picture_url}${imgCacheBuster}`}
+                alt="Profile"
                 onError={() => setImgError(true)}
-                className="w-10 h-10 rounded-full object-cover bg-slate-800 flex-shrink-0" 
+                className="w-10 h-10 rounded-full object-cover bg-slate-800 flex-shrink-0"
               />
             ) : (
               <div className="w-10 h-10 rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center flex-shrink-0">
@@ -219,9 +220,9 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
       />
 
       {/* Logout Confirmation Dialog */}
-      {isLogoutDialogOpen && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-[fadeIn_0.3s_ease-out]" onClick={() => setIsLogoutDialogOpen(false)} />
+      {isLogoutDialogOpen && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-6">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-[fadeIn_0.3s_ease-out]" onClick={() => setIsLogoutDialogOpen(false)} />
           <div className="relative bg-white dark:bg-[#121620] border border-black/5 dark:border-white/10 rounded-3xl p-8 shadow-2xl dark:shadow-[0_0_40px_rgba(0,0,0,0.5)] max-w-sm w-full text-center animate-[popIn_0.4s_cubic-bezier(0.16,1,0.3,1)]">
             <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-500/20 flex items-center justify-center mx-auto mb-5 shadow-[0_0_30px_rgba(239,68,68,0.2)]">
               <AlertTriangle className="w-8 h-8 text-red-600 dark:text-red-400" />
@@ -254,7 +255,8 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
               to { opacity: 1; transform: scale(1) translateY(0); }
             }
           `}</style>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

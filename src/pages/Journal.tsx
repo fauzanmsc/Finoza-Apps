@@ -62,25 +62,25 @@ export default function Journal() {
           <p className="text-[10px] lg:text-sm text-[var(--color-text-muted)]">Ringkasan transaksi dalam format debit dan kredit.</p>
         </div>
         
-        <div className="flex flex-wrap items-center gap-2 lg:gap-3">
-          <div className="flex items-center gap-1 lg:gap-2 bg-surface-light border border-white/5 rounded-xl p-1">
-            <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+        <div className="w-full lg:w-auto">
+          <div className="flex flex-col sm:flex-row items-center gap-2 bg-surface-light border border-black/5 dark:border-white/5 rounded-xl p-2 w-full">
+            <div className="relative w-full sm:w-auto">
+              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" />
               <input 
                 type="date" 
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="bg-transparent py-2 pl-9 pr-3 text-sm focus:outline-none text-[var(--color-text-foreground)]"
+                className="w-full sm:w-auto bg-transparent py-2 pl-9 pr-3 text-sm focus:outline-none text-[var(--color-text-foreground)]"
               />
             </div>
-            <span className="text-slate-500">-</span>
-            <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <span className="hidden sm:block text-[var(--color-text-muted)]">-</span>
+            <div className="relative w-full sm:w-auto">
+              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" />
               <input 
                 type="date" 
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="bg-transparent py-2 pl-9 pr-3 text-sm focus:outline-none text-[var(--color-text-foreground)]"
+                className="w-full sm:w-auto bg-transparent py-2 pl-9 pr-3 text-sm focus:outline-none text-[var(--color-text-foreground)]"
               />
             </div>
           </div>

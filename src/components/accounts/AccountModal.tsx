@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, WalletCards, Building2, Smartphone, Banknote, CreditCard, PiggyBank, Landmark, CircleDollarSign, Wallet } from 'lucide-react';
 import { fetchApi } from '../../services/api';
 import { useAuth } from '../../store/useAuth';
@@ -94,21 +95,22 @@ export default function AccountModal({ isOpen, onClose, onRefresh, initialData }
 
   const SelectedIconComponent = ICON_OPTIONS.find(ic => ic.name === selectedIcon)?.icon || WalletCards;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-end lg:items-center justify-center p-0 lg:p-4">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 sm:p-0">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}></div>
-      <div className="relative w-full max-w-md bg-surface border border-white/10 rounded-t-3xl lg:rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
+      <div className="relative w-full max-w-md bg-surface border border-black/10 dark:border-white/10 rounded-3xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col">
         
-        <div className="flex items-center justify-between p-6 border-b border-white/5 sticky top-0 bg-surface z-10">
+        <div className="flex items-center justify-between p-5 border-b border-black/5 dark:border-white/5 sticky top-0 bg-surface z-30 shrink-0">
           <h2 className="text-xl font-bold">{initialData ? 'Edit Rekening' : 'Tambah Rekening'}</h2>
           <button onClick={onClose} className="p-2 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Preview Card */}
-          <div className="rounded-2xl p-5 text-white relative overflow-hidden" style={{ background: selectedColor }}>
+        <div className="overflow-y-auto p-5">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Preview Card */}
+            <div className="rounded-2xl p-4 text-white relative z-0 overflow-hidden" style={{ background: selectedColor }}>
             <div className="absolute right-4 top-4 opacity-20">
               <SelectedIconComponent className="w-16 h-16" />
             </div>
@@ -200,15 +202,17 @@ export default function AccountModal({ isOpen, onClose, onRefresh, initialData }
             </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full bg-[var(--color-stabilo)] hover:bg-[#b3e600] text-black font-medium py-4 rounded-xl transition-all shadow-[0_0_15px_rgba(204,255,0,0.2)] disabled:opacity-70"
-          >
-            {isSubmitting ? 'Menyimpan...' : 'Simpan Rekening'}
-          </button>
-        </form>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full bg-[var(--color-stabilo)] hover:bg-[#b3e600] text-black font-medium py-3.5 rounded-xl transition-all shadow-[0_0_15px_rgba(204,255,0,0.2)] disabled:opacity-70 mt-2"
+            >
+              {isSubmitting ? 'Menyimpan...' : 'Simpan Rekening'}
+            </button>
+          </form>
+        </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

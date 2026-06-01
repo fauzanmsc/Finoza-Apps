@@ -26,7 +26,10 @@ export default function AppLayout() {
           className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${isMobileSidebarOpen ? 'pointer-events-auto' : 'pointer-events-none'}`} 
           onClick={() => setIsMobileSidebarOpen(false)} 
         />
-        <div className={`absolute left-0 top-0 h-full w-72 bg-surface shadow-2xl transition-transform duration-300 ease-in-out z-10 ${isMobileSidebarOpen ? 'translate-x-0 pointer-events-auto' : '-translate-x-full pointer-events-none'}`}>
+        <div 
+          className={`absolute left-0 top-0 h-full w-72 shadow-2xl transition-transform duration-300 ease-in-out z-10 ${isMobileSidebarOpen ? 'translate-x-0 pointer-events-auto' : '-translate-x-full pointer-events-none'}`}
+          style={{ background: 'linear-gradient(135deg, var(--color-background) 0%, var(--color-background-grad-end) 100%)' }}
+        >
           {/* Close button */}
           <button 
             onClick={() => setIsMobileSidebarOpen(false)}
@@ -56,11 +59,11 @@ export default function AppLayout() {
             />
           </div>
           <button onClick={toggleTheme} className="p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
-            {theme === 'dark' ? <Moon className="w-5 h-5 text-[var(--color-stabilo)]" fill="currentColor" /> : <Sun className="w-5 h-5 text-amber-400" />}
+            {theme === 'dark' ? <Moon className="w-5 h-5 text-white" /> : <Sun className="w-5 h-5 text-amber-400" />}
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto w-full max-w-[1400px] mx-auto pb-20 lg:pb-0">
+        <div className="flex-1 overflow-y-auto w-full max-w-[1400px] mx-auto">
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
@@ -68,7 +71,7 @@ export default function AppLayout() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
-              className="h-full"
+              className="min-h-full pb-22 lg:pb-8"
             >
               <Outlet />
             </motion.div>
@@ -78,7 +81,7 @@ export default function AppLayout() {
 
       {/* Mobile Bottom Nav - Hidden on desktop */}
       <div className="lg:hidden fixed bottom-0 left-0 w-full z-50">
-        <div className="absolute bottom-full left-0 w-full h-12 bg-gradient-to-t from-background to-transparent pointer-events-none"></div>
+        <div className="absolute left-0 w-full bg-gradient-to-t from-background to-transparent pointer-events-none" style={{ bottom: '40px', height: '100px' }}></div>
         <BottomNav />
       </div>
 

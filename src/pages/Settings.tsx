@@ -195,17 +195,17 @@ export default function Settings() {
           )}
         </div>
         {/* Logout Section */}
-        <div className="glass rounded-2xl overflow-hidden mt-6 border border-negative/10">
-          <div
-            onClick={() => setIsLogoutDialogOpen(true)}
-            className="p-4 lg:p-6 flex items-center gap-3 lg:gap-4 hover:bg-white/5 transition-colors cursor-pointer text-negative"
-          >
-            <div className="w-9 h-9 lg:w-10 lg:h-10 rounded-xl bg-negative/10 flex items-center justify-center">
-              <LogOut className="w-4 h-4 lg:w-5 lg:h-5" />
+        <div 
+          onClick={() => setIsLogoutDialogOpen(true)}
+          className="rounded-2xl overflow-hidden mt-6 bg-negative hover:bg-[#dc2626] transition-colors cursor-pointer shadow-[0_4px_20px_rgba(239,68,68,0.3)]"
+        >
+          <div className="p-4 lg:p-6 flex items-center gap-3 lg:gap-4 text-white">
+            <div className="w-9 h-9 lg:w-10 lg:h-10 rounded-xl bg-white/20 flex items-center justify-center">
+              <LogOut className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
             </div>
             <div>
-              <h4 className="font-bold text-sm lg:text-base">Keluar Akun</h4>
-              <p className="text-xs lg:text-sm opacity-70">Sesi Anda akan berakhir</p>
+              <h4 className="font-bold text-sm lg:text-base text-white">Keluar Akun</h4>
+              <p className="text-xs lg:text-sm text-white/90">Sesi Anda akan berakhir</p>
             </div>
           </div>
         </div>
@@ -216,7 +216,7 @@ export default function Settings() {
 
       {/* Logout Confirmation Dialog */}
       {isLogoutDialogOpen && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-[fadeIn_0.3s_ease-out]" onClick={() => setIsLogoutDialogOpen(false)} />
           <div className="relative bg-white dark:bg-[#121620] border border-black/5 dark:border-white/10 rounded-3xl p-8 shadow-2xl dark:shadow-[0_0_40px_rgba(0,0,0,0.5)] max-w-sm w-full text-center animate-[popIn_0.4s_cubic-bezier(0.16,1,0.3,1)]">
             <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-500/20 flex items-center justify-center mx-auto mb-5 shadow-[0_0_30px_rgba(239,68,68,0.2)]">

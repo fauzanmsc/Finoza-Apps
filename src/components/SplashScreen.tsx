@@ -17,9 +17,10 @@ export default function SplashScreen({ onFinish }: { onFinish: () => void }) {
 
   return (
     <div 
-      className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-background transition-opacity duration-300 ${
+      className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center transition-opacity duration-300 ${
         isFading ? 'opacity-0' : 'opacity-100'
       }`}
+      style={{ background: 'linear-gradient(135deg, var(--color-background) 0%, var(--color-background-grad-end) 100%)' }}
     >
       {/* Logo container with pulse and float animation */}
       <div className="relative flex flex-col items-center">

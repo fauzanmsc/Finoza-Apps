@@ -95,12 +95,12 @@ export default function Accounts() {
       </div>
 
       {/* Total Assets Summary */}
-      <div className="glass rounded-2xl p-4 lg:p-6 border border-white/10 relative overflow-hidden">
+      <div className="glass rounded-2xl p-4 lg:p-6 border border-black/5 dark:border-white/10 relative overflow-hidden">
         <div className="absolute right-0 top-0 opacity-10 pointer-events-none">
           <WalletCards className="w-20 lg:w-32 h-20 lg:h-32 -mr-4 lg:-mr-6 -mt-4 lg:-mt-6" />
         </div>
-        <p className="text-slate-400 mb-1 text-xs lg:text-sm">Total Seluruh Aset</p>
-        <p className="text-2xl lg:text-5xl font-bold tracking-tight text-[var(--color-stabilo)] drop-shadow-md">
+        <p className="text-[var(--color-text-muted)] mb-1 text-xs lg:text-sm">Total Seluruh Aset</p>
+        <p className="text-2xl lg:text-5xl font-bold tracking-tight text-slate-900 dark:text-[var(--color-stabilo)] drop-shadow-sm dark:drop-shadow-md">
           {formatRp(accounts.reduce((acc, curr) => acc + Number(curr.initial_balance), 0))}
         </p>
       </div>
@@ -132,7 +132,7 @@ export default function Accounts() {
                       e.stopPropagation(); 
                       setActiveMenuId(activeMenuId === acc.id ? null : acc.id); 
                     }} 
-                    className="p-2 hover:bg-white/10 rounded-full transition-colors text-slate-400 hover:text-white"
+                    className="p-2 hover:bg-black/10 dark:hover:bg-white/10 rounded-full transition-colors text-[var(--color-text-muted)] hover:text-[var(--color-text-foreground)]"
                   >
                     <MoreVertical className="w-5 h-5" />
                   </button>
@@ -171,9 +171,9 @@ export default function Accounts() {
 
       {/* Account Detail Modal (show transactions for selected account) */}
       {selectedAccount && (
-        <div className="fixed inset-0 z-50 flex items-end lg:items-center justify-center p-0 lg:p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 lg:p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedAccount(null)} />
-          <div className="relative w-full max-w-lg glass border border-white/10 rounded-t-3xl lg:rounded-3xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col">
+          <div className="relative w-full max-w-lg glass border border-white/10 rounded-3xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col animate-in zoom-in-95 duration-200">
             {/* Header with account card */}
             <div className="p-4 lg:p-6 text-white relative" style={{ background: selectedAccount.color_hex || '#1E3A8A' }}>
               <button onClick={() => setSelectedAccount(null)} className="absolute top-3 right-3 lg:top-4 lg:right-4 p-2 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-colors">

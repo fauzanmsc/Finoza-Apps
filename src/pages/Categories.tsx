@@ -197,12 +197,12 @@ export default function Categories() {
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
           <div className="relative w-full max-w-md glass border border-white/10 rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between p-6 border-b border-white/5">
               <h2 className="text-xl font-bold">{editingCat ? 'Edit Kategori' : 'Tambah Kategori'}</h2>
-              <button onClick={() => setIsModalOpen(false)} className="p-2 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors">
+              <button onClick={() => setIsModalOpen(false)} className="p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-[var(--color-text-muted)] hover:text-[var(--color-text-foreground)] transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -228,7 +228,7 @@ export default function Categories() {
                       key={type}
                       type="button"
                       onClick={() => setFormData({...formData, category_type: type as any})}
-                      className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all ${formData.category_type === type ? 'bg-[var(--color-stabilo)] text-black shadow-md' : 'text-slate-400 hover:text-white'}`}
+                      className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all ${formData.category_type === type ? 'bg-[var(--color-stabilo)] text-black shadow-md' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-foreground)]'}`}
                     >
                       {type === 'Expense' ? 'Pengeluaran' : type === 'Income' ? 'Pemasukan' : 'Transfer'}
                     </button>
@@ -261,7 +261,7 @@ export default function Categories() {
                         key={iconName}
                         type="button"
                         onClick={() => setFormData({...formData, icon_name: iconName})}
-                        className={`aspect-square rounded-xl flex items-center justify-center transition-all ${formData.icon_name === iconName ? 'bg-[var(--color-stabilo)] text-black shadow-md scale-105' : 'bg-surface-light text-slate-400 hover:bg-white/10 hover:text-white'}`}
+                        className={`aspect-square rounded-xl flex items-center justify-center transition-all ${formData.icon_name === iconName ? 'bg-[var(--color-stabilo)] text-black shadow-md scale-105' : 'bg-surface-light text-[var(--color-text-muted)] hover:bg-black/10 dark:hover:bg-white/10 hover:text-[var(--color-text-foreground)]'}`}
                       >
                         <IconComp className="w-5 h-5" />
                       </button>

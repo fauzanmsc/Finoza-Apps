@@ -21,7 +21,7 @@ export default function OnboardingModal({ onClose }: OnboardingProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
       
       <div className="relative w-full max-w-md bg-surface border border-white/10 rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-500">

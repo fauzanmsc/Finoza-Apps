@@ -20,6 +20,7 @@ import TransactionModal from '../components/transactions/TransactionModal';
 import { fetchApi } from '../services/api';
 import { useAuth } from '../store/useAuth';
 import OnboardingModal from '../components/ui/OnboardingModal';
+import { useNavigate } from 'react-router-dom';
 
 const formatRp = (num: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(num);
 const formatShort = (num: number) => {
@@ -32,6 +33,24 @@ const formatAxisTick = (v: number) => {
   if (v >= 1000000) return (v / 1000000).toFixed(0) + 'jt';
   if (v >= 1000) return (v / 1000).toFixed(0) + 'rb';
   return v.toString();
+};
+
+const parseTxDate = (val: any): Date | null => {
+  if (!val) return null;
+  if (typeof val === 'number') {
+    return val < 100000 ? new Date((val - 25569) * 86400000) : new Date(val);
+  }
+  const str = String(val).trim();
+  const iso = str.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+  if (iso) return new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3]));
+  const dm = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+  if (dm) {
+    const p1 = Number(dm[1]), p2 = Number(dm[2]), y = Number(dm[3]);
+    return p2 > 12 ? new Date(y, p1 - 1, p2) : new Date(y, p2 - 1, p1); 
+  }
+  const d = new Date(str);
+  if (!isNaN(d.getTime())) return d;
+  return null;
 };
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -90,16 +109,28 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [allTransactions, setAllTransactions] = useState<any[]>([]);
   const [periodFilter, setPeriodFilter] = useState('weekly');
+  const [chartMonthOffset, setChartMonthOffset] = useState(0);
   const [imgError, setImgError] = useState(false);
-  const [showBalance, setShowBalance] = useState(true);
+  const [showBalance, setShowBalance] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [imgCacheBuster, setImgCacheBuster] = useState('');
+  const [growthIndex, setGrowthIndex] = useState(0);
+  const [isBlinking, setIsBlinking] = useState(false);
 
   const token = useAuth(state => state.token);
   const user = useAuth(state => state.user);
+  const navigate = useNavigate();
 
   useEffect(() => {
     setImgCacheBuster(`?t=${Date.now()}`);
+    const interval = setInterval(() => {
+      setIsBlinking(true);
+      setTimeout(() => {
+        setGrowthIndex(prev => (prev + 1) % 3);
+        setIsBlinking(false);
+      }, 300);
+    }, 4000);
+    return () => clearInterval(interval);
   }, []);
 
   const loadData = async () => {
@@ -124,7 +155,8 @@ export default function Dashboard() {
 
       const now = new Date();
       const currentMonthTx = transactions.filter((tx: any) => {
-        const d = new Date(tx.tx_date);
+        const d = parseTxDate(tx.tx_date);
+        if (!d) return false;
         return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
       });
 
@@ -155,7 +187,38 @@ export default function Dashboard() {
       const allTimeExpense = transactions.filter((tx: any) => tx.tx_type === 'Expense').reduce((sum: number, tx: any) => sum + (Number(tx.amount) || 0), 0);
       const net_balance = accountsTotal + allTimeIncome - allTimeExpense;
 
-      const recent_transactions = [...transactions].sort((a, b) => new Date(b.tx_date).getTime() - new Date(a.tx_date).getTime()).slice(0, 5);
+      const nowTime = new Date().getTime();
+      const oneDayMs = 24 * 60 * 60 * 1000;
+      const yesterdayEnd = new Date(new Date().setHours(0,0,0,0) - 1).getTime();
+      const lastWeekEnd = new Date(new Date().setHours(0,0,0,0) - 7 * oneDayMs - 1).getTime();
+      const lastMonthEnd = new Date(new Date().getFullYear(), new Date().getMonth(), 0, 23, 59, 59, 999).getTime();
+
+      const getBalanceAtDate = (timeLimit: number) => {
+         const pastIncome = transactions.filter((tx: any) => tx.tx_type === 'Income' && parseTxDate(tx.tx_date) && parseTxDate(tx.tx_date)!.getTime() <= timeLimit).reduce((sum: number, tx: any) => sum + (Number(tx.amount) || 0), 0);
+         const pastExpense = transactions.filter((tx: any) => tx.tx_type === 'Expense' && parseTxDate(tx.tx_date) && parseTxDate(tx.tx_date)!.getTime() <= timeLimit).reduce((sum: number, tx: any) => sum + (Number(tx.amount) || 0), 0);
+         return accountsTotal + pastIncome - pastExpense;
+      };
+
+      const calcGrowth = (past: number, current: number) => {
+        if (past === 0) return current > 0 ? 100 : 0;
+        return ((current - past) / Math.abs(past)) * 100;
+      };
+
+      const growth = [
+        { label: 'kemarin', value: calcGrowth(getBalanceAtDate(yesterdayEnd), net_balance) },
+        { label: 'minggu lalu', value: calcGrowth(getBalanceAtDate(lastWeekEnd), net_balance) },
+        { label: 'bulan lalu', value: calcGrowth(getBalanceAtDate(lastMonthEnd), net_balance) }
+      ];
+
+      const recent_transactions = [...transactions]
+        .sort((a, b) => (parseTxDate(b.tx_date)?.getTime() || 0) - (parseTxDate(a.tx_date)?.getTime() || 0))
+        .slice(0, 5)
+        .map(tx => ({
+           ...tx,
+           category_name: catMap[tx.category_id]?.category_name || tx.category_id || (tx.tx_type === 'Income' ? 'Pemasukan' : 'Pengeluaran'),
+           icon_name: catMap[tx.category_id]?.icon_name || (tx.tx_type === 'Income' ? 'arrow-down-left' : 'tags'),
+           color_hex: catMap[tx.category_id]?.color_hex || (tx.tx_type === 'Income' ? '#1EE494' : '#FF4D4D')
+        }));
 
       setData({
         net_balance,
@@ -163,7 +226,8 @@ export default function Dashboard() {
         total_expense,
         top_expenses,
         recent_transactions,
-        accounts
+        accounts,
+        growth
       });
     } catch (err) {
       console.error(err);
@@ -213,32 +277,54 @@ export default function Dashboard() {
     return '#1E3A8A';
   };
 
+  const getPeriodLabel = () => {
+    const now = new Date();
+    if (periodFilter === 'weekly') {
+      const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6 + (chartMonthOffset * 7));
+      const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (chartMonthOffset * 7));
+      return `${start.toLocaleDateString('id-ID', {day: '2-digit', month: 'short'})} - ${end.toLocaleDateString('id-ID', {day: '2-digit', month: 'short'})}`;
+    }
+    if (periodFilter === 'monthly') {
+      return new Date(now.getFullYear(), now.getMonth() + chartMonthOffset, 1).toLocaleDateString('id-ID', { month: 'short', year: 'numeric' });
+    }
+    if (periodFilter === 'yearly') {
+      return (now.getFullYear() + chartMonthOffset).toString();
+    }
+    return '';
+  };
+
   const getFilteredCashflow = () => {
     if (!allTransactions || allTransactions.length === 0) return data?.cashflow || [];
 
     const now = new Date();
     let startDate = new Date();
+    let endDate = new Date();
     let formatFullDate = (d: Date) => d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
     let formatLabel = (d: Date) => d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
     let groupBy = (d: Date) => d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
 
-    if (periodFilter === 'weekly') startDate.setDate(now.getDate() - 7);
-    else if (periodFilter === 'monthly') startDate.setMonth(now.getMonth() - 1);
-    else if (periodFilter === '3months') {
-      startDate.setMonth(now.getMonth() - 3);
-      formatLabel = (d: Date) => d.toLocaleDateString('id-ID', { month: 'short' });
-      formatFullDate = (d: Date) => d.toLocaleDateString('id-ID', { month: 'short', year: 'numeric' });
-      groupBy = (d: Date) => d.getFullYear() + '-' + d.getMonth();
+    if (periodFilter === 'weekly') {
+      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6 + (chartMonthOffset * 7), 0, 0, 0);
+      endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (chartMonthOffset * 7), 23, 59, 59);
+    } else if (periodFilter === 'monthly') {
+      startDate = new Date(now.getFullYear(), now.getMonth() + chartMonthOffset, 1);
+      endDate = new Date(now.getFullYear(), now.getMonth() + chartMonthOffset + 1, 0, 23, 59, 59);
     } else if (periodFilter === 'yearly') {
-      startDate.setFullYear(now.getFullYear() - 1);
+      startDate = new Date(now.getFullYear() + chartMonthOffset, 0, 1);
+      endDate = new Date(now.getFullYear() + chartMonthOffset, 11, 31, 23, 59, 59);
       formatLabel = (d: Date) => d.toLocaleDateString('id-ID', { month: 'short' });
       formatFullDate = (d: Date) => d.toLocaleDateString('id-ID', { month: 'short', year: 'numeric' });
       groupBy = (d: Date) => d.getFullYear() + '-' + d.getMonth();
     }
 
-    const filtered = allTransactions.filter(tx => new Date(tx.tx_date) >= startDate);
+    const filtered = allTransactions.filter(tx => {
+      const d = parseTxDate(tx.tx_date);
+      if (!d) return false;
+      return d >= startDate && d <= endDate;
+    });
+
     const grouped = filtered.reduce((acc, tx) => {
-      const d = new Date(tx.tx_date);
+      const d = parseTxDate(tx.tx_date)!;
       const key = groupBy(d);
       if (!acc[key]) acc[key] = { name: formatLabel(d), fullDate: formatFullDate(d), income: 0, expense: 0, date: d };
       if (tx.tx_type === 'Income') acc[key].income += Number(tx.amount || 0);
@@ -258,7 +344,7 @@ export default function Dashboard() {
       {/* ========================================= */}
       {/* MOBILE LAYOUT (< lg)                     */}
       {/* ========================================= */}
-      <div className="block lg:hidden px-4 pt-4 pb-28 w-full max-w-md mx-auto relative">
+      <div className="block lg:hidden px-4 pt-4 w-full max-w-md mx-auto relative">
 
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
@@ -267,10 +353,10 @@ export default function Dashboard() {
               src={`${user.profile_picture_url}${imgCacheBuster}`}
               alt="Profile"
               onError={() => setImgError(true)}
-              className="w-12 h-12 rounded-full object-cover bg-slate-800 border-2 border-[var(--color-stabilo)] flex-shrink-0"
+              className="w-12 h-12 rounded-full object-cover bg-slate-800 border-2 border-white dark:border-slate-800 flex-shrink-0"
             />
           ) : (
-            <div className="w-12 h-12 rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center flex-shrink-0 border-2 border-[var(--color-stabilo)]">
+            <div className="w-12 h-12 rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center flex-shrink-0 border-2 border-white dark:border-slate-800">
               <User className="w-6 h-6 text-slate-500" />
             </div>
           )}
@@ -284,18 +370,21 @@ export default function Dashboard() {
 
         {/* Saldo Bersih Hero Card */}
         <div className="glass rounded-2xl p-5 mb-4 relative overflow-hidden">
-          <p className="text-[var(--color-text-muted)] text-xs font-medium mb-1">Saldo Bersih</p>
-          <div className="flex items-center justify-between">
-            <p className="text-[28px] font-extrabold text-[var(--color-text-foreground)] tracking-tight leading-none">
-              {showBalance ? formatRp(data.net_balance) : 'Rp ••••••••'}
-            </p>
-            <button onClick={() => setShowBalance(!showBalance)} className="p-2 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors text-[var(--color-text-muted)]">
-              {showBalance ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+          <div className="flex items-center gap-2 mb-1">
+            <p className="text-[var(--color-text-muted)] text-xs font-medium">Saldo Bersih</p>
+            <button onClick={() => setShowBalance(!showBalance)} className="p-1 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors text-[var(--color-text-muted)]">
+              {showBalance ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
             </button>
           </div>
-          <div className="inline-flex items-center gap-1 bg-positive/10 text-positive px-2 py-1 rounded-lg text-[11px] font-semibold mt-2">
-            <ArrowUpRight className="w-3 h-3 stroke-[2.5px]" /> 12.5% dari bulan lalu
-          </div>
+          <p className="text-[28px] font-extrabold text-[var(--color-text-foreground)] tracking-tight leading-none mb-1 truncate pr-2">
+            {showBalance ? formatRp(data.net_balance) : 'Rp ••••••••'}
+          </p>
+          {data?.growth && (
+            <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold mt-2 transition-opacity duration-300 ${isBlinking ? 'opacity-0' : 'opacity-100'} ${data.growth[growthIndex].value >= 0 ? 'bg-positive/10 text-positive' : 'bg-negative/10 text-negative'}`}>
+              {data.growth[growthIndex].value >= 0 ? <ArrowUpRight className="w-3 h-3 stroke-[2.5px]" /> : <ArrowDownRight className="w-3 h-3 stroke-[2.5px]" />}
+              {Math.abs(data.growth[growthIndex].value).toFixed(1)}% dari {data.growth[growthIndex].label}
+            </div>
+          )}
 
           {/* Sub-cards: Pemasukan & Pengeluaran */}
           <div className="flex gap-2 mt-4">
@@ -305,7 +394,7 @@ export default function Dashboard() {
               </div>
               <div className="min-w-0 text-left">
                 <p className="text-[10px] text-[var(--color-text-muted)] leading-tight">Pemasukan</p>
-                <p className="font-bold text-[12px] text-[var(--color-text-foreground)] tracking-tight truncate">{formatRp(data.total_income)}</p>
+                <p className="font-bold text-[12px] text-[var(--color-text-foreground)] tracking-tight truncate">{showBalance ? formatRp(data.total_income) : 'Rp ••••'}</p>
               </div>
             </button>
             <button onClick={() => openModal('Expense')} className="flex-1 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-xl p-3 flex items-center gap-2 active:scale-95 transition-transform">
@@ -314,7 +403,7 @@ export default function Dashboard() {
               </div>
               <div className="min-w-0 text-left">
                 <p className="text-[10px] text-[var(--color-text-muted)] leading-tight">Pengeluaran</p>
-                <p className="font-bold text-[12px] text-[var(--color-text-foreground)] tracking-tight truncate">{formatRp(data.total_expense)}</p>
+                <p className="font-bold text-[12px] text-[var(--color-text-foreground)] tracking-tight truncate">{showBalance ? formatRp(data.total_expense) : 'Rp ••••'}</p>
               </div>
             </button>
           </div>
@@ -326,7 +415,7 @@ export default function Dashboard() {
           <div className="glass rounded-2xl p-4 flex flex-col">
             <div className="flex justify-between items-center mb-3">
               <h3 className="text-xs font-medium text-[var(--color-text-foreground)]">Akun Rekening</h3>
-              <button className="text-[10px] text-positive font-medium">Lihat Semua</button>
+              <button onClick={() => navigate('/accounts')} className="text-[10px] text-positive font-medium">Lihat Semua</button>
             </div>
             <div className="relative flex-1 [mask-image:linear-gradient(to_bottom,black_75%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_75%,transparent_100%)]">
               <div className="flex flex-col gap-2 overflow-y-auto scrollbar-hide max-h-[220px] pb-4">
@@ -339,7 +428,7 @@ export default function Dashboard() {
                       </div>
                       <button className="text-white/50 hover:text-white"><MoreHorizontal className="w-3.5 h-3.5" /></button>
                     </div>
-                    <p className="font-bold text-sm drop-shadow-md z-10 relative mt-2">{formatRp(acc.initial_balance)}</p>
+                    <p className="font-bold text-sm drop-shadow-md z-10 relative mt-2">{showBalance ? formatRp(acc.initial_balance) : 'Rp ••••••••'}</p>
                     <div className="absolute right-0 bottom-0 opacity-15 translate-x-2 translate-y-2 pointer-events-none">
                       <Landmark className="w-[50px] h-[50px]" />
                     </div>
@@ -399,18 +488,30 @@ export default function Dashboard() {
 
         {/* Arus Kas Chart */}
         <div className="glass rounded-2xl p-4 mb-4">
-          <div className="flex items-center justify-between mb-1">
+          <div className="flex flex-col gap-3 mb-3">
             <h3 className="text-xs font-medium text-[var(--color-text-foreground)]">Arus Kas Masuk/Keluar</h3>
-            <select
-              value={periodFilter}
-              onChange={e => setPeriodFilter(e.target.value)}
-              className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 text-[10px] rounded-lg px-2 py-1 text-[var(--color-text-foreground)] focus:outline-none"
-            >
-              <option value="weekly">Mingguan</option>
-              <option value="monthly">Bulanan</option>
-              <option value="3months">3 Bulan</option>
-              <option value="yearly">Tahunan</option>
-            </select>
+            <div className="flex items-center gap-2">
+              <select
+                value={periodFilter}
+                onChange={e => { setPeriodFilter(e.target.value); setChartMonthOffset(0); }}
+                className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 text-[10px] rounded-lg px-2 text-[var(--color-text-foreground)] focus:outline-none cursor-pointer h-[28px] flex-shrink-0"
+              >
+                <option value="weekly">Mingguan</option>
+                <option value="monthly">Bulanan</option>
+                <option value="yearly">Tahunan</option>
+              </select>
+              <div className="flex items-center bg-black/5 dark:bg-white/5 rounded-lg border border-black/5 dark:border-white/10 h-[28px] flex-1 max-w-[200px]">
+                <button onClick={() => setChartMonthOffset(prev => prev - 1)} className="px-2.5 h-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors rounded-l-lg border-r border-black/5 dark:border-white/10 text-[var(--color-text-muted)] hover:text-[var(--color-text-foreground)] text-[10px] flex items-center justify-center">
+                  &lt;
+                </button>
+                <span className="text-[10px] px-2 font-medium flex-1 text-center text-[var(--color-text-foreground)] flex items-center justify-center h-full">
+                  {getPeriodLabel()}
+                </span>
+                <button onClick={() => setChartMonthOffset(prev => prev + 1)} disabled={chartMonthOffset >= 0} className={`px-2.5 h-full transition-colors rounded-r-lg border-l border-black/5 dark:border-white/10 text-[10px] flex items-center justify-center ${chartMonthOffset >= 0 ? 'opacity-30 cursor-not-allowed text-[var(--color-text-muted)]' : 'hover:bg-black/5 dark:hover:bg-white/10 hover:text-[var(--color-text-foreground)] text-[var(--color-text-muted)]'}`}>
+                  &gt;
+                </button>
+              </div>
+            </div>
           </div>
           <div className="flex items-center gap-3 text-[10px] mb-3">
             <span className="flex items-center gap-1"><span className="w-2 h-0.5 bg-positive rounded-full inline-block" /> Pemasukan</span>
@@ -443,7 +544,7 @@ export default function Dashboard() {
         <div className="glass rounded-2xl p-4 mb-4">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-xs font-medium text-[var(--color-text-foreground)]">Top Pengeluaran</h3>
-            <button className="text-[10px] text-positive font-medium">Lihat Semua</button>
+            <button onClick={() => navigate('/transactions')} className="text-[10px] text-positive font-medium">Lihat Semua</button>
           </div>
           <div className="space-y-4">
             {data.top_expenses && data.top_expenses.length > 0 ? data.top_expenses.map((cat: any, i: number) => {
@@ -481,59 +582,36 @@ export default function Dashboard() {
         <div className="glass rounded-2xl p-4">
           <div className="flex justify-between items-center mb-3">
             <h3 className="text-xs font-medium text-[var(--color-text-foreground)]">Transaksi Terbaru</h3>
-            <button className="text-[10px] text-positive font-medium">Lihat Semua</button>
+            <button onClick={() => navigate('/transactions')} className="text-[10px] text-positive font-medium">Lihat Semua</button>
           </div>
           <div className="space-y-2">
-            {data.recent_transactions?.map((tx: any, i: number) => (
-              <div key={i} className="flex items-center justify-between p-2.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${tx.tx_type === 'Income' ? 'bg-positive/10' : 'bg-negative/10'}`}>
-                    {tx.tx_type === 'Income' ? <ArrowDownRight className="w-4 h-4 text-positive" /> : <ArrowUpRight className="w-4 h-4 text-negative" />}
+            {data.recent_transactions?.map((tx: any, i: number) => {
+              const IconComp = ICON_MAP[tx.icon_name] || (tx.tx_type === 'Income' ? ArrowDownRight : ArrowUpRight);
+              const d = parseTxDate(tx.tx_date);
+              const formattedDate = d ? d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : tx.tx_date;
+              return (
+                <div key={i} className="flex items-center justify-between p-2.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${tx.color_hex}15`, color: tx.color_hex }}>
+                      <IconComp className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[12px] font-medium text-[var(--color-text-foreground)] truncate">{tx.note || tx.category_name}</p>
+                      <p className="text-[10px] text-[var(--color-text-muted)] truncate">{tx.category_name} • {formattedDate}</p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-[12px] font-medium text-[var(--color-text-foreground)] truncate">{tx.note || tx.category_id || 'Transaksi'}</p>
-                    <p className="text-[10px] text-[var(--color-text-muted)]">{tx.tx_date}</p>
-                  </div>
+                  <p className={`text-[12px] font-semibold flex-shrink-0 ml-2 ${tx.tx_type === 'Income' ? 'text-positive' : 'text-negative'}`}>
+                    {tx.tx_type === 'Income' ? '+' : '-'}{formatRp(tx.amount)}
+                  </p>
                 </div>
-                <p className={`text-[12px] font-semibold flex-shrink-0 ml-2 ${tx.tx_type === 'Income' ? 'text-positive' : 'text-negative'}`}>
-                  {tx.tx_type === 'Income' ? '+' : '-'}{formatRp(tx.amount)}
-                </p>
-              </div>
-            ))}
+              );
+            })}
             {(!data.recent_transactions || data.recent_transactions.length === 0) && (
               <p className="text-center text-[var(--color-text-muted)] text-[11px] py-4">Belum ada transaksi</p>
             )}
           </div>
         </div>
 
-        {/* Bottom Navigation Bar */}
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-[var(--color-glass-bg)] backdrop-blur-xl border-t border-black/5 dark:border-white/10 pb-[env(safe-area-inset-bottom)] px-2">
-          <div className="max-w-md mx-auto flex items-center justify-around py-2 relative">
-            <button className="flex flex-col items-center gap-0.5 text-[var(--color-stabilo)] min-w-[52px]">
-              <Wallet className="w-5 h-5" />
-              <span className="text-[10px] font-semibold">Dashboard</span>
-              <div className="w-1 h-1 rounded-full bg-[var(--color-stabilo)]" />
-            </button>
-            <button className="flex flex-col items-center gap-0.5 text-[var(--color-text-muted)] min-w-[52px]">
-              <ArrowUpRight className="w-5 h-5" />
-              <span className="text-[10px] font-medium">Transaksi</span>
-            </button>
-            <div className="relative -mt-6">
-              <button onClick={() => openModal()} className="w-14 h-14 rounded-2xl bg-[var(--color-stabilo)] shadow-[0_4px_20px_var(--color-glow-stabilo)] flex items-center justify-center active:scale-90 transition-transform">
-                <Plus className="w-7 h-7 text-[#0B101E]" strokeWidth={2.5} />
-              </button>
-              <span className="text-[10px] font-medium text-[var(--color-text-muted)] text-center block mt-1">Tambah</span>
-            </div>
-            <button className="flex flex-col items-center gap-0.5 text-[var(--color-text-muted)] min-w-[52px]">
-              <MoreHorizontal className="w-5 h-5" />
-              <span className="text-[10px] font-medium">Laporan</span>
-            </button>
-            <button className="flex flex-col items-center gap-0.5 text-[var(--color-text-muted)] min-w-[52px]">
-              <User className="w-5 h-5" />
-              <span className="text-[10px] font-medium">Profil</span>
-            </button>
-          </div>
-        </div>
       </div>
 
 
@@ -548,10 +626,10 @@ export default function Dashboard() {
                 src={`${user.profile_picture_url}${imgCacheBuster}`}
                 alt="Profile"
                 onError={() => setImgError(true)}
-                className="w-16 h-16 lg:w-[72px] lg:h-[72px] rounded-full object-cover bg-slate-800 border-[3px] border-[var(--color-stabilo)]/50 shadow-lg shadow-black/20"
+                className="w-16 h-16 lg:w-[72px] lg:h-[72px] rounded-full object-cover bg-slate-800 border-[3px] border-white dark:border-slate-800 shadow-lg shadow-black/20"
               />
             ) : (
-              <div className="w-16 h-16 lg:w-[72px] lg:h-[72px] rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center border-[3px] border-[var(--color-stabilo)]/50">
+              <div className="w-16 h-16 lg:w-[72px] lg:h-[72px] rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center border-[3px] border-white dark:border-slate-800">
                 <User className="w-8 h-8 text-slate-500" />
               </div>
             )}
@@ -579,30 +657,38 @@ export default function Dashboard() {
                 <Wallet className="w-8 h-8 text-slate-500 dark:text-slate-300" />
               </div>
               <div className="z-10">
-                <h3 className="text-[var(--color-text-muted)] text-[15px] font-medium mb-3">Saldo Bersih</h3>
-                <p className="text-[42px] font-extrabold tracking-tight mb-4 leading-none text-[var(--color-text-foreground)]">{formatRp(data.net_balance)}</p>
-                <div className="inline-flex items-center gap-1 bg-positive/10 text-positive px-2.5 py-1.5 rounded-lg text-sm font-semibold">
-                  <ArrowUpRight className="w-4 h-4 stroke-[2.5px]" /> 12.5% dari bulan lalu
+                <div className="flex items-center gap-3 mb-3">
+                  <h3 className="text-[var(--color-text-muted)] text-[15px] font-medium">Saldo Bersih</h3>
+                  <button onClick={() => setShowBalance(!showBalance)} className="p-1.5 rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors text-[var(--color-text-muted)]">
+                    {showBalance ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                  </button>
                 </div>
+                <p className="text-[42px] font-extrabold tracking-tight mb-4 leading-none text-[var(--color-text-foreground)] truncate pr-16">{showBalance ? formatRp(data.net_balance) : 'Rp ••••••••'}</p>
+                {data?.growth && (
+                  <div className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-sm font-semibold transition-opacity duration-300 ${isBlinking ? 'opacity-0' : 'opacity-100'} ${data.growth[growthIndex].value >= 0 ? 'bg-positive/10 text-positive' : 'bg-negative/10 text-negative'}`}>
+                    {data.growth[growthIndex].value >= 0 ? <ArrowUpRight className="w-4 h-4 stroke-[2.5px]" /> : <ArrowDownRight className="w-4 h-4 stroke-[2.5px]" />}
+                    {Math.abs(data.growth[growthIndex].value).toFixed(1)}% dari {data.growth[growthIndex].label}
+                  </div>
+                )}
               </div>
 
               <div className="mt-auto pt-6 flex flex-row items-center gap-2 xl:gap-3 z-10 relative w-full">
-                <div className="flex-1 min-w-0 bg-[#1A1F2B] rounded-xl xl:rounded-[20px] p-2 lg:p-2.5 xl:p-4 flex items-center gap-1.5 lg:gap-2 xl:gap-3 shadow-sm border border-white/5 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/20 hover:border-white/10 transition-all duration-300 cursor-pointer">
-                  <div className="w-7 h-7 lg:w-8 lg:h-8 xl:w-11 xl:h-11 rounded-lg xl:rounded-[14px] bg-[#162D27] flex items-center justify-center flex-shrink-0">
-                    <ArrowDownRight className="w-3.5 h-3.5 lg:w-4 lg:h-4 xl:w-5 xl:h-5 text-[#1EE494] stroke-[2.5px]" />
+                <div className="flex-1 min-w-0 bg-black/5 dark:bg-white/5 rounded-xl xl:rounded-[20px] p-2 lg:p-2.5 xl:p-4 flex items-center gap-1.5 lg:gap-2 xl:gap-3 shadow-sm border border-black/5 dark:border-white/5 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/10 dark:hover:shadow-black/20 hover:border-black/10 dark:hover:border-white/10 transition-all duration-300 cursor-pointer">
+                  <div className="w-7 h-7 lg:w-8 lg:h-8 xl:w-11 xl:h-11 rounded-lg xl:rounded-[14px] bg-positive/10 flex items-center justify-center flex-shrink-0">
+                    <ArrowDownRight className="w-3.5 h-3.5 lg:w-4 lg:h-4 xl:w-5 xl:h-5 text-positive stroke-[2.5px]" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-[10px] lg:text-[11px] xl:text-[13px] text-[var(--color-text-muted)] mb-0.5 truncate">Pemasukan</p>
-                    <p className="font-bold text-[11px] lg:text-[12px] xl:text-[15px] text-white tracking-tight leading-tight">{formatRp(data.total_income)}</p>
+                    <p className="font-bold text-[11px] lg:text-[12px] xl:text-[15px] text-[var(--color-text-foreground)] tracking-tight leading-tight">{showBalance ? formatRp(data.total_income) : 'Rp ••••'}</p>
                   </div>
                 </div>
-                <div className="flex-1 min-w-0 bg-[#1A1F2B] rounded-xl xl:rounded-[20px] p-2 lg:p-2.5 xl:p-4 flex items-center gap-1.5 lg:gap-2 xl:gap-3 shadow-sm border border-white/5 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/20 hover:border-white/10 transition-all duration-300 cursor-pointer">
-                  <div className="w-7 h-7 lg:w-8 lg:h-8 xl:w-11 xl:h-11 rounded-lg xl:rounded-[14px] bg-[#311F24] flex items-center justify-center flex-shrink-0">
-                    <ArrowUpRight className="w-3.5 h-3.5 lg:w-4 lg:h-4 xl:w-5 xl:h-5 text-[#FF4D4D] stroke-[2.5px]" />
+                <div className="flex-1 min-w-0 bg-black/5 dark:bg-white/5 rounded-xl xl:rounded-[20px] p-2 lg:p-2.5 xl:p-4 flex items-center gap-1.5 lg:gap-2 xl:gap-3 shadow-sm border border-black/5 dark:border-white/5 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/10 dark:hover:shadow-black/20 hover:border-black/10 dark:hover:border-white/10 transition-all duration-300 cursor-pointer">
+                  <div className="w-7 h-7 lg:w-8 lg:h-8 xl:w-11 xl:h-11 rounded-lg xl:rounded-[14px] bg-negative/10 flex items-center justify-center flex-shrink-0">
+                    <ArrowUpRight className="w-3.5 h-3.5 lg:w-4 lg:h-4 xl:w-5 xl:h-5 text-negative stroke-[2.5px]" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-[10px] lg:text-[11px] xl:text-[13px] text-[var(--color-text-muted)] mb-0.5 truncate">Pengeluaran</p>
-                    <p className="font-bold text-[11px] lg:text-[12px] xl:text-[15px] text-white tracking-tight leading-tight">{formatRp(data.total_expense)}</p>
+                    <p className="font-bold text-[11px] lg:text-[12px] xl:text-[15px] text-[var(--color-text-foreground)] tracking-tight leading-tight">{showBalance ? formatRp(data.total_expense) : 'Rp ••••'}</p>
                   </div>
                 </div>
               </div>
@@ -628,7 +714,7 @@ export default function Dashboard() {
             <div className="glass hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/20 transition-all duration-300 rounded-2xl p-6 flex-1 flex flex-col relative overflow-hidden">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="font-medium text-[var(--color-text-foreground)]">Akun Rekening</h3>
-                <button className="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-foreground)]">Lihat Semua</button>
+                <button onClick={() => navigate('/accounts')} className="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-foreground)]">Lihat Semua</button>
               </div>
               {/* Mobile: horizontal scroll with gradient fade */}
               <div className="relative flex-1 lg:max-h-[210px] lg:[mask-image:linear-gradient(to_bottom,black_70%,transparent_100%)] lg:[-webkit-mask-image:linear-gradient(to_bottom,black_70%,transparent_100%)]">
@@ -645,7 +731,7 @@ export default function Dashboard() {
                           <span className="text-[11px] text-white/70 tracking-widest mt-0.5 block">•••• 1234</span>
                         </div>
                       </div>
-                      <p className="font-bold text-xl drop-shadow-md z-10 relative">{formatRp(acc.initial_balance)}</p>
+                      <p className="font-bold text-xl drop-shadow-md z-10 relative">{showBalance ? formatRp(acc.initial_balance) : 'Rp ••••••••'}</p>
                       {/* Subtle bank icon overlay */}
                       <div className="absolute right-0 bottom-0 opacity-15 translate-x-3 translate-y-4 pointer-events-none">
                         <Landmark className="w-[100px] h-[100px]" />
@@ -724,18 +810,30 @@ export default function Dashboard() {
           <div className="lg:col-span-8 flex flex-col">
             <div className="glass hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/20 transition-all duration-300 rounded-2xl p-6 flex-1 flex flex-col">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center gap-4">
                   <h3 className="font-medium text-[var(--color-text-foreground)]">Arus Kas Masuk/Keluar</h3>
-                  <select
-                    value={periodFilter}
-                    onChange={e => setPeriodFilter(e.target.value)}
-                    className="bg-black/10 dark:bg-white/5 border border-black/10 dark:border-white/10 text-xs rounded-lg px-3 py-1.5 focus:outline-none text-[var(--color-text-foreground)] hover:bg-white/10 transition-colors"
-                  >
-                    <option value="weekly">Mingguan</option>
-                    <option value="monthly">Bulanan</option>
-                    <option value="3months">3 Bulan Terakhir</option>
-                    <option value="yearly">Tahunan</option>
-                  </select>
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={periodFilter}
+                      onChange={e => { setPeriodFilter(e.target.value); setChartMonthOffset(0); }}
+                      className="bg-black/10 dark:bg-white/5 border border-black/10 dark:border-white/10 text-xs rounded-lg px-3 focus:outline-none text-[var(--color-text-foreground)] hover:bg-white/10 transition-colors h-[32px] cursor-pointer"
+                    >
+                      <option value="weekly">Mingguan</option>
+                      <option value="monthly">Bulanan</option>
+                      <option value="yearly">Tahunan</option>
+                    </select>
+                    <div className="flex items-center bg-black/5 dark:bg-white/5 rounded-lg border border-black/5 dark:border-white/10 h-[32px]">
+                      <button onClick={() => setChartMonthOffset(prev => prev - 1)} className="px-3 h-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors rounded-l-lg border-r border-black/5 dark:border-white/10 text-[var(--color-text-muted)] hover:text-[var(--color-text-foreground)] flex items-center justify-center">
+                        &lt;
+                      </button>
+                      <span className="text-xs px-3 font-medium min-w-[120px] text-center text-[var(--color-text-foreground)] flex items-center justify-center h-full">
+                        {getPeriodLabel()}
+                      </span>
+                      <button onClick={() => setChartMonthOffset(prev => prev + 1)} disabled={chartMonthOffset >= 0} className={`px-3 h-full transition-colors rounded-r-lg border-l border-black/5 dark:border-white/10 flex items-center justify-center ${chartMonthOffset >= 0 ? 'opacity-30 cursor-not-allowed text-[var(--color-text-muted)]' : 'hover:bg-black/5 dark:hover:bg-white/10 hover:text-[var(--color-text-foreground)] text-[var(--color-text-muted)]'}`}>
+                        &gt;
+                      </button>
+                    </div>
+                  </div>
                 </div>
                 <div className="flex items-center gap-4 text-xs">
                   <span className="flex items-center gap-1.5"><span className="w-3 h-0.5 bg-positive rounded-full shadow-[0_0_4px_var(--color-positive)] inline-block" /> Pemasukan</span>
@@ -809,9 +907,7 @@ export default function Dashboard() {
                   <p className="text-sm text-slate-500 text-center py-4 flex-1 flex items-center justify-center">Belum ada pengeluaran</p>
                 )}
               </div>
-              <button onClick={() => openModal('Expense')} className="w-full mt-6 py-3 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-xl hover:bg-black/10 dark:hover:bg-white/10 transition-colors text-sm font-medium text-[var(--color-text-foreground)] shadow-sm">
-                + Catat Pengeluaran Baru
-              </button>
+
             </div>
           </div>
 
@@ -820,25 +916,30 @@ export default function Dashboard() {
             <div className="glass rounded-2xl p-6">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="font-medium text-[var(--color-text-foreground)]">Transaksi Terbaru</h3>
-                <button className="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-foreground)]">Lihat Semua</button>
+                <button onClick={() => navigate('/transactions')} className="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-foreground)]">Lihat Semua</button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {data.recent_transactions?.map((tx: any, i: number) => (
-                  <div key={i} className="flex items-center justify-between p-4 rounded-xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 hover:border-black/10 dark:hover:border-white/10 transition-colors cursor-pointer">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${tx.tx_type === 'Income' ? 'bg-positive/10 text-positive' : 'bg-negative/10 text-negative'}`}>
-                        {tx.tx_type === 'Income' ? <ArrowDownRight className="w-5 h-5" /> : <ArrowUpRight className="w-5 h-5" />}
+                {data.recent_transactions?.map((tx: any, i: number) => {
+                  const IconComp = ICON_MAP[tx.icon_name] || (tx.tx_type === 'Income' ? ArrowDownRight : ArrowUpRight);
+                  const d = parseTxDate(tx.tx_date);
+                  const formattedDate = d ? d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : tx.tx_date;
+                  return (
+                    <div key={i} className="flex items-center justify-between p-4 rounded-xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 hover:border-black/10 dark:hover:border-white/10 transition-colors cursor-pointer">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${tx.color_hex}15`, color: tx.color_hex }}>
+                          <IconComp className="w-5 h-5" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-[var(--color-text-foreground)] truncate">{tx.note || tx.category_name}</p>
+                          <p className="text-xs text-[var(--color-text-muted)] truncate">{tx.category_name} • {formattedDate}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium text-sm">{tx.note || tx.category_id || 'Transaksi'}</p>
-                        <p className="text-[10px] text-[var(--color-text-muted)]">{tx.tx_date}</p>
-                      </div>
+                      <p className={`text-sm font-semibold flex-shrink-0 ml-2 ${tx.tx_type === 'Income' ? 'text-positive' : 'text-negative'}`}>
+                        {tx.tx_type === 'Income' ? '+' : '-'}{formatRp(tx.amount)}
+                      </p>
                     </div>
-                    <p className={`font-bold text-sm ${tx.tx_type === 'Income' ? 'text-positive' : 'text-negative'}`}>
-                      {tx.tx_type === 'Income' ? '+' : '-'}{formatRp(tx.amount)}
-                    </p>
-                  </div>
-                ))}
+                  );
+                })}
                 {(!data.recent_transactions || data.recent_transactions.length === 0) && (
                   <div className="col-span-full text-center text-slate-500 py-6">Belum ada transaksi</div>
                 )}

@@ -95,13 +95,13 @@ export default function Transactions() {
           <div className="relative">
             <button 
               onClick={() => setShowFilterMenu(!showFilterMenu)}
-              className={`p-2.5 glass border rounded-xl hover:bg-white/5 transition-colors ${filterType !== 'Semua' ? 'border-[var(--color-stabilo)] text-[var(--color-stabilo)]' : 'border-white/10 text-slate-400'}`}
+              className={`p-2.5 glass border rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors ${filterType !== 'Semua' ? 'border-[var(--color-stabilo)] text-[var(--color-stabilo)]' : 'border-black/10 dark:border-white/10 text-[var(--color-text-muted)]'}`}
             >
               <Filter className="w-4 h-4" />
             </button>
 
             {showFilterMenu && (
-              <div className="absolute right-0 top-full mt-2 w-40 bg-surface-light border border-white/10 rounded-xl shadow-xl overflow-hidden z-50">
+              <div className="absolute right-0 top-full mt-2 w-40 bg-surface-light border border-black/10 dark:border-white/10 rounded-xl shadow-xl overflow-hidden z-50">
                 {['Semua', 'Pemasukan', 'Pengeluaran', 'Transfer'].map((type) => (
                   <button
                     key={type}
@@ -109,7 +109,7 @@ export default function Transactions() {
                       setFilterType(type);
                       setShowFilterMenu(false);
                     }}
-                    className={`w-full px-4 py-2 text-left text-sm hover:bg-white/5 flex items-center gap-2 ${filterType === type ? 'text-[var(--color-stabilo)] font-medium' : 'text-slate-300'}`}
+                    className={`w-full px-4 py-2 text-left text-sm hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2 ${filterType === type ? 'text-[var(--color-stabilo)] font-medium' : 'text-[var(--color-text-muted)]'}`}
                   >
                     {type}
                   </button>
@@ -134,11 +134,11 @@ export default function Transactions() {
             onAction={!searchQuery ? () => { setEditingTx(null); setIsModalOpen(true); } : undefined}
           />
         ) : (
-          <div className="divide-y divide-white/5">
+          <div className="divide-y divide-black/5 dark:divide-white/5">
             {filteredTxs.map((tx: any, i: number) => {
               const menuId = tx.id || `idx-${i}`;
               return (
-              <div key={tx.id || i} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-5 hover:bg-white/5 transition-colors gap-3 lg:gap-4 relative">
+              <div key={tx.id || i} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-5 hover:bg-black/5 dark:hover:bg-white/5 transition-colors gap-3 lg:gap-4 relative">
                 <div className="flex items-center gap-3 lg:gap-4">
                   <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-surface-light flex items-center justify-center flex-shrink-0">
                     {tx.tx_type === 'Income' ? <ArrowUpRight className="w-4 lg:w-5 h-4 lg:h-5 text-positive" /> : 
@@ -161,16 +161,16 @@ export default function Transactions() {
                     <p className="text-[10px] lg:text-xs text-slate-400">{tx.account_src_id}</p>
                   </div>
                   <div className="relative">
-                    <button onClick={() => setActiveMenuId(activeMenuId === menuId ? null : menuId)} className="p-2 hover:bg-white/10 rounded-full transition-colors text-slate-400 hover:text-white">
+                    <button onClick={() => setActiveMenuId(activeMenuId === menuId ? null : menuId)} className="p-2 hover:bg-black/10 dark:hover:bg-white/10 rounded-full transition-colors text-[var(--color-text-muted)] hover:text-[var(--color-text-foreground)]">
                       <MoreVertical className="w-5 h-5" />
                     </button>
                     
                     {activeMenuId === menuId && (
-                      <div className="absolute right-0 top-full mt-1 w-32 bg-surface-light border border-white/10 rounded-xl shadow-xl overflow-hidden z-50">
-                        <button onClick={() => handleEdit(tx)} className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 flex items-center gap-2">
+                      <div className="absolute right-0 top-full mt-1 w-32 bg-surface-light border border-black/10 dark:border-white/10 rounded-xl shadow-xl overflow-hidden z-50">
+                        <button onClick={() => handleEdit(tx)} className="w-full px-4 py-2 text-left text-sm hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2">
                           <Edit2 className="w-4 h-4" /> Edit
                         </button>
-                        <button onClick={() => handleDelete(tx.id)} className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 text-negative flex items-center gap-2">
+                        <button onClick={() => handleDelete(tx.id)} className="w-full px-4 py-2 text-left text-sm hover:bg-black/5 dark:hover:bg-white/5 text-negative flex items-center gap-2">
                           <Trash2 className="w-4 h-4" /> Hapus
                         </button>
                       </div>

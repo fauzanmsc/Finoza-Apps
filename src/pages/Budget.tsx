@@ -24,9 +24,51 @@ export default function Budget() {
 
   const loadBudgets = async () => {
     setIsLoading(true);
-    const res = await fetchApi('GET_BUDGETS', {}, token!);
-    if (res.status === 'success') {
-      setBudgets(res.data || []);
+    try {
+      const [resBudgets, resTx, resCat] = await Promise.all([
+        fetchApi('GET_BUDGETS', {}, token!),
+        fetchApi('GET_TRANSACTIONS', {}, token!),
+        fetchApi('GET_CATEGORIES', {}, token!)
+      ]);
+
+      const budgetsData = resBudgets.status === 'success' ? resBudgets.data || [] : [];
+      const txData = resTx.status === 'success' ? resTx.data || [] : [];
+      const catData = resCat.status === 'success' ? resCat.data || [] : [];
+
+      const catMap = catData.reduce((acc: any, cat: any) => {
+        acc[cat.id] = cat;
+        return acc;
+      }, {});
+
+      const now = new Date();
+      const currentMonthTx = txData.filter((tx: any) => {
+        const d = new Date(tx.tx_date);
+        return tx.tx_type === 'Expense' && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      });
+
+      const enrichedBudgets = budgetsData.map((b: any) => {
+        const targetCat = catData.find((c: any) => c.id === b.category_id || (c.name || c.category_name)?.toLowerCase() === (b.name || '').toLowerCase());
+        
+        const usedAmount = currentMonthTx.reduce((sum: number, tx: any) => {
+          const txCatName = catMap[tx.category_id]?.name || catMap[tx.category_id]?.category_name || 'Lainnya';
+          if (txCatName.toLowerCase() === (b.name || '').toLowerCase() || tx.category_id === targetCat?.id) {
+            return sum + Number(tx.amount || 0);
+          }
+          return sum;
+        }, 0);
+
+        const limitVal = Number(b.limit || b.amount_limit || 0);
+
+        return {
+          ...b,
+          limit: limitVal,
+          used: usedAmount,
+          color: targetCat?.color_hex || '#10B981'
+        };
+      });
+      setBudgets(enrichedBudgets);
+    } catch (e) {
+      console.error(e);
     }
     setIsLoading(false);
   };
@@ -78,7 +120,7 @@ export default function Budget() {
       <div className="glass p-5 lg:p-8 rounded-3xl flex flex-col md:flex-row items-center gap-6 lg:gap-8 border border-white/5">
         <div className="relative w-32 h-32 lg:w-48 lg:h-48 flex-shrink-0">
           <svg className="w-full h-full transform -rotate-90" viewBox="0 0 192 192">
-            <circle cx="96" cy="96" r="80" stroke="currentColor" strokeWidth="16" fill="transparent" className="text-white/5" />
+            <circle cx="96" cy="96" r="80" stroke="currentColor" strokeWidth="16" fill="transparent" className="text-black/5 dark:text-white/5" />
             <circle 
               cx="96" cy="96" r="80" 
               stroke="currentColor" 
@@ -91,8 +133,8 @@ export default function Budget() {
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-2xl lg:text-3xl font-bold text-white">{totalPercent}%</span>
-            <span className="text-[10px] lg:text-xs text-slate-400">Terpakai</span>
+            <span className="text-2xl lg:text-3xl font-bold text-[var(--color-text-foreground)]">{totalPercent}%</span>
+            <span className="text-[10px] lg:text-xs text-[var(--color-text-muted)]">Terpakai</span>
           </div>
         </div>
         
@@ -117,53 +159,68 @@ export default function Budget() {
             onAction={openCreateModal}
           />
         ) : (
-          budgets.map((b, i) => {
-            const percent = Math.min(((b.used || 0) / (b.limit || 1)) * 100, 100);
-            const isOver = (b.used || 0) > b.limit;
-            
-            return (
-              <div key={i} className="glass p-4 lg:p-5 rounded-2xl transition-colors relative group">
-                <div className="flex items-center justify-between mb-2 lg:mb-3">
-                  <div className="flex items-center gap-2 lg:gap-3">
-                    <div className={`w-2.5 h-2.5 lg:w-3 lg:h-3 rounded-full ${b.color || 'bg-[var(--color-stabilo)]'}`}></div>
-                    <span className="font-medium text-sm lg:text-base text-white">{b.name}</span>
-                  </div>
-                  <div className="flex items-center gap-3 lg:gap-4">
-                    <div className="text-right">
-                      <span className={`font-bold text-sm lg:text-base ${isOver ? 'text-negative' : 'text-white'}`}>{formatRp(b.used || 0)}</span>
-                      <span className="text-[10px] lg:text-xs text-slate-400 ml-1">/ {formatRp(b.limit)}</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+            {budgets.map((b, i) => {
+              const percent = Math.min(((b.used || 0) / (b.limit || 1)) * 100, 100);
+              const isOver = (b.used || 0) > b.limit;
+              
+              return (
+                <div key={i} className="glass p-5 lg:p-6 rounded-[24px] hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/20 transition-all duration-300 relative group overflow-hidden border border-white/5">
+                  <div className="flex items-start justify-between mb-6 relative z-10">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg" style={{ backgroundColor: `${b.color}20` }}>
+                         <div className="w-4 h-4 rounded-full" style={{ backgroundColor: b.color, boxShadow: `0 0 10px ${b.color}` }}></div>
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-base lg:text-lg text-[var(--color-text-foreground)] mb-1">{b.name}</h4>
+                        <div className="flex items-center gap-2">
+                          <span className={`font-extrabold text-sm lg:text-base ${isOver ? 'text-negative' : 'text-[var(--color-text-foreground)]'}`}>{formatRp(b.used || 0)}</span>
+                          <span className="text-xs text-[var(--color-text-muted)]">/ {formatRp(b.limit)}</span>
+                        </div>
+                      </div>
                     </div>
                     
                     <div className="relative">
-                      <button onClick={() => setActiveMenuId(activeMenuId === b.id ? null : b.id)} className="p-1 hover:bg-white/10 rounded-full transition-colors text-slate-400 hover:text-white">
-                        <MoreVertical className="w-5 h-5" />
+                      <button onClick={() => setActiveMenuId(activeMenuId === b.id ? null : b.id)} className="p-2 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 rounded-xl transition-colors text-[var(--color-text-muted)] hover:text-[var(--color-text-foreground)]">
+                        <MoreVertical className="w-4 h-4" />
                       </button>
                       
                       {activeMenuId === b.id && (
-                        <div className="absolute right-0 top-full mt-1 w-32 bg-surface-light border border-white/10 rounded-xl shadow-xl overflow-hidden z-10">
-                          <button onClick={() => handleEdit(b)} className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 flex items-center gap-2">
-                            <Edit2 className="w-4 h-4" /> Edit
+                        <div className="absolute right-0 top-full mt-2 w-36 bg-surface border border-white/10 rounded-xl shadow-2xl overflow-hidden z-20 animate-in fade-in zoom-in-95 duration-200">
+                          <button onClick={() => handleEdit(b)} className="w-full px-4 py-3 text-left text-sm hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-3 font-medium transition-colors">
+                            <Edit2 className="w-4 h-4 text-blue-500" /> Edit
                           </button>
-                          <button onClick={() => handleDelete(b.id)} className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 text-negative flex items-center gap-2">
+                          <div className="h-px w-full bg-black/5 dark:bg-white/5" />
+                          <button onClick={() => handleDelete(b.id)} className="w-full px-4 py-3 text-left text-sm hover:bg-black/5 dark:hover:bg-white/5 text-negative flex items-center gap-3 font-medium transition-colors">
                             <Trash2 className="w-4 h-4" /> Hapus
                           </button>
                         </div>
                       )}
                     </div>
                   </div>
+                  
+                  <div className="relative z-10">
+                    <div className="flex justify-between items-end mb-2">
+                      <span className="text-[11px] font-medium text-[var(--color-text-muted)]">Penggunaan Anggaran</span>
+                      <span className={`text-xs font-bold ${isOver ? 'text-negative' : 'text-[var(--color-text-foreground)]'}`}>{percent.toFixed(0)}%</span>
+                    </div>
+                    <div className="h-2.5 w-full bg-black/10 dark:bg-white/10 rounded-full overflow-hidden shadow-inner">
+                      <div 
+                        className={`h-full rounded-full transition-all duration-1000 relative ${isOver ? 'bg-negative' : ''}`} 
+                        style={{ width: `${percent}%`, backgroundColor: !isOver ? b.color : undefined }}
+                      >
+                         {!isOver && <div className="absolute inset-0 bg-white/20" />}
+                      </div>
+                    </div>
+                    {isOver && <p className="text-[11px] text-negative mt-2.5 font-medium bg-negative/10 inline-block px-2.5 py-1.5 rounded-lg shadow-sm">⚠️ Melebihi anggaran sebesar {formatRp((b.used || 0) - b.limit)}</p>}
+                    {!isOver && (b.limit - (b.used || 0) > 0) && <p className="text-[11px] text-[var(--color-text-muted)] mt-2 font-medium">Tersisa {formatRp(b.limit - (b.used || 0))}</p>}
+                  </div>
+
+                  <div className="absolute -right-6 -bottom-6 w-32 h-32 opacity-[0.03] pointer-events-none rounded-full" style={{ backgroundColor: b.color }} />
                 </div>
-                
-                <div className="h-3 w-full bg-surface-light rounded-full overflow-hidden">
-                  <div 
-                    className={`h-full rounded-full transition-all duration-1000 ${isOver ? 'bg-negative' : (b.color || 'bg-[var(--color-stabilo)]')}`} 
-                    style={{ width: `${percent}%` }}
-                  ></div>
-                </div>
-                
-                {isOver && <p className="text-xs text-negative mt-2">Melebihi anggaran sebesar {formatRp(b.used - b.limit)}</p>}
-              </div>
-            )
-          })
+              )
+            })}
+          </div>
         )}
       </div>
 
