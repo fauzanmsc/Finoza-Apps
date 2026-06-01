@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { WalletCards, Plus, Loader2, MoreVertical, Edit2, Trash2, X, ArrowUpRight, ArrowDownRight, Building2, Smartphone, Banknote, CreditCard, PiggyBank, Landmark, CircleDollarSign, Wallet } from 'lucide-react';
+import { WalletCards, Plus, Loader2, MoreVertical, Edit2, Trash2, X, ArrowUpRight, ArrowDownRight, Building2, Smartphone, Banknote, CreditCard, PiggyBank, Landmark, CircleDollarSign, Wallet, Eye, EyeOff } from 'lucide-react';
 import { fetchApi } from '../services/api';
 import { useAuth } from '../store/useAuth';
 import AccountModal from '../components/accounts/AccountModal';
@@ -20,6 +20,7 @@ export default function Accounts() {
   const [selectedAccount, setSelectedAccount] = useState<any>(null);
   const [confirmModal, setConfirmModal] = useState<{isOpen: boolean; id: string | null}>({ isOpen: false, id: null });
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showNominal, setShowNominal] = useState(true);
 
 
   const token = useAuth(state => state.token);
@@ -86,7 +87,7 @@ export default function Accounts() {
   }
 
   return (
-    <div className="p-4 lg:p-8 w-full max-w-5xl mx-auto space-y-6 overflow-x-hidden">
+    <div className="p-4 lg:p-8 w-full max-w-7xl mx-auto space-y-6 overflow-x-hidden">
       <div className="flex items-center justify-between">
         <h2 className="text-xl lg:text-2xl font-bold">Aset & Rekening</h2>
         <button onClick={openCreateModal} className="bg-[var(--color-stabilo)] hover:bg-[#b3e600] text-black px-3 lg:px-4 py-2 rounded-xl flex items-center gap-2 text-sm font-medium transition-colors shadow-[0_0_15px_rgba(204,255,0,0.2)]">
@@ -95,13 +96,22 @@ export default function Accounts() {
       </div>
 
       {/* Total Assets Summary */}
-      <div className="glass rounded-2xl p-4 lg:p-6 border border-black/5 dark:border-white/10 relative overflow-hidden">
-        <div className="absolute right-0 top-0 opacity-10 pointer-events-none">
+      <div className="glass rounded-2xl p-4 lg:p-6 border border-black/5 dark:border-white/10 relative overflow-hidden group">
+        <div className="absolute right-0 top-0 opacity-10 pointer-events-none transition-transform group-hover:scale-110">
           <WalletCards className="w-20 lg:w-32 h-20 lg:h-32 -mr-4 lg:-mr-6 -mt-4 lg:-mt-6" />
         </div>
-        <p className="text-[var(--color-text-muted)] mb-1 text-xs lg:text-sm">Total Seluruh Aset</p>
-        <p className="text-2xl lg:text-5xl font-bold tracking-tight text-slate-900 dark:text-[var(--color-stabilo)] drop-shadow-sm dark:drop-shadow-md">
-          {formatRp(accounts.reduce((acc, curr) => acc + Number(curr.initial_balance), 0))}
+        <div className="flex items-center justify-between mb-1">
+          <p className="text-[var(--color-text-muted)] text-xs lg:text-sm font-medium">Total Seluruh Aset</p>
+          <button 
+            onClick={() => setShowNominal(!showNominal)} 
+            className="p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-xl transition-colors text-slate-400 hover:text-[var(--color-text-foreground)]"
+            title={showNominal ? "Sembunyikan Saldo" : "Tampilkan Saldo"}
+          >
+            {showNominal ? <EyeOff className="w-4 h-4 lg:w-5 lg:h-5" /> : <Eye className="w-4 h-4 lg:w-5 lg:h-5" />}
+          </button>
+        </div>
+        <p className={`text-2xl lg:text-5xl font-bold tracking-tight text-slate-900 dark:text-[var(--color-stabilo)] drop-shadow-sm dark:drop-shadow-md transition-all ${!showNominal && 'filter blur-[8px] opacity-70 select-none'}`}>
+          {showNominal ? formatRp(accounts.reduce((acc, curr) => acc + Number(curr.initial_balance), 0)) : 'Rp ••••••••'}
         </p>
       </div>
 
@@ -148,10 +158,13 @@ export default function Accounts() {
                   )}
                 </div>
               </div>
-              <div>
-                <p className="text-[10px] lg:text-sm text-slate-400 mb-0.5 lg:mb-1">Saldo Saat Ini</p>
-                <p className="text-lg lg:text-2xl font-bold tracking-tight">{formatRp(acc.initial_balance)}</p>
-              </div>
+                  {/* Account Balance */}
+                  <div className="mt-4 lg:mt-6">
+                    <p className="text-[10px] lg:text-xs text-slate-400 mb-1 lg:mb-1.5 font-medium">Saldo Saat Ini</p>
+                    <p className={`text-lg lg:text-2xl font-bold tracking-tight text-[var(--color-text-foreground)] drop-shadow-sm transition-all ${!showNominal && 'filter blur-[5px] opacity-70 select-none'}`}>
+                      {showNominal ? formatRp(acc.initial_balance) : 'Rp ••••••••'}
+                    </p>
+                  </div>
             </div>
           );
         })}
@@ -232,6 +245,8 @@ export default function Accounts() {
         onClose={() => setConfirmModal({ isOpen: false, id: null })}
         onConfirm={confirmDelete}
         message="Yakin ingin menghapus rekening ini?"
+        confirmText="Hapus"
+        variant="danger"
         isLoading={isDeleting}
       />
     </div>

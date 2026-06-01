@@ -168,16 +168,16 @@ export default function Categories() {
 
   return (
     <div className="p-4 lg:p-8 w-full max-w-7xl mx-auto space-y-6 lg:space-y-8 animate-in fade-in duration-500">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
         <div>
-          <h2 className="text-2xl lg:text-3xl font-extrabold tracking-tight">Kategori</h2>
-          <p className="text-[10px] lg:text-sm text-[var(--color-text-muted)] mt-1">Atur kategori pengeluaran dan pemasukan Anda.</p>
+          <h2 className="text-2xl lg:text-3xl font-extrabold tracking-tight text-[var(--color-text-foreground)] drop-shadow-sm">Kategori</h2>
+          <p className="text-[11px] lg:text-sm text-[var(--color-text-muted)] mt-1.5 font-medium">Atur kategori pengeluaran dan pemasukan Anda.</p>
         </div>
         <button 
           onClick={openNewModal}
-          className="bg-[var(--color-stabilo)] hover:bg-[#b3e600] text-black px-4 lg:px-5 py-2 lg:py-2.5 rounded-xl flex items-center gap-2 text-xs lg:text-sm font-bold transition-all shadow-lg shadow-[var(--color-stabilo)]/20 hover:shadow-[var(--color-stabilo)]/40 hover:-translate-y-0.5 whitespace-nowrap"
+          className="w-full sm:w-auto bg-[var(--color-stabilo)] hover:bg-[#b3e600] text-black px-5 lg:px-6 py-3 lg:py-3 rounded-xl flex items-center justify-center gap-2 text-sm lg:text-sm font-bold transition-all shadow-[0_0_20px_rgba(204,255,0,0.25)] hover:shadow-[0_0_25px_rgba(204,255,0,0.4)] hover:-translate-y-0.5 whitespace-nowrap self-start sm:self-auto"
         >
-          <Plus className="w-4 lg:w-5 h-4 lg:h-5" /> Tambah Kategori
+          <Plus className="w-5 h-5" /> Tambah Kategori
         </button>
       </div>
 
@@ -287,6 +287,8 @@ export default function Categories() {
         onClose={() => setConfirmModal({ isOpen: false, id: null })}
         onConfirm={confirmDelete}
         message="Yakin ingin menghapus kategori ini?"
+        confirmText="Hapus"
+        variant="danger"
         isLoading={isDeleting}
       />
     </div>

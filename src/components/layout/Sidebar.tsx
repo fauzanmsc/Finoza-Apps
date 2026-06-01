@@ -227,8 +227,8 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
             <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-500/20 flex items-center justify-center mx-auto mb-5 shadow-[0_0_30px_rgba(239,68,68,0.2)]">
               <AlertTriangle className="w-8 h-8 text-red-600 dark:text-red-400" />
             </div>
-            <h3 className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-2">Keluar dari Finoza Apps?</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mb-8 leading-relaxed">Sesi Anda akan berakhir dan Anda harus login kembali untuk mengakses dashboard.</p>
+            <h3 className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-2">Keluar dari Aplikasi?</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mb-8 leading-relaxed">Sesi akan berakhir dan kamu harus login kembali untuk mengakses dashboard.</p>
 
             <div className="flex gap-3">
               <button

@@ -164,7 +164,7 @@ export default function Settings() {
 
         {/* Developer Actions */}
         <div className="glass rounded-2xl border border-negative/20 overflow-hidden">
-          <button 
+          <button
             onClick={() => setIsDevAreaOpen(!isDevAreaOpen)}
             className="w-full p-4 lg:p-6 flex items-center justify-between text-left hover:bg-white/5 transition-colors"
           >
@@ -195,17 +195,17 @@ export default function Settings() {
           )}
         </div>
         {/* Logout Section */}
-        <div 
+        <div
           onClick={() => setIsLogoutDialogOpen(true)}
-          className="rounded-2xl overflow-hidden mt-6 bg-negative hover:bg-[#dc2626] transition-colors cursor-pointer shadow-[0_4px_20px_rgba(239,68,68,0.3)]"
+          className="glass rounded-2xl overflow-hidden mt-6 transition-all cursor-pointer hover:bg-white/5 border border-transparent hover:border-negative/20 group shadow-sm"
         >
-          <div className="p-4 lg:p-6 flex items-center gap-3 lg:gap-4 text-white">
-            <div className="w-9 h-9 lg:w-10 lg:h-10 rounded-xl bg-white/20 flex items-center justify-center">
-              <LogOut className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
+          <div className="p-4 lg:p-6 flex items-center gap-3 lg:gap-4">
+            <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-negative/10 flex items-center justify-center transition-all group-hover:bg-negative group-hover:shadow-[0_0_15px_rgba(255,77,77,0.4)] group-hover:scale-105">
+              <LogOut className="w-5 h-5 lg:w-6 lg:h-6 text-negative group-hover:text-white transition-colors" />
             </div>
             <div>
-              <h4 className="font-bold text-sm lg:text-base text-white">Keluar Akun</h4>
-              <p className="text-xs lg:text-sm text-white/90">Sesi Anda akan berakhir</p>
+              <h4 className="font-bold text-sm lg:text-base text-[var(--color-text-foreground)] group-hover:text-negative transition-colors">Keluar Akun</h4>
+              <p className="text-[11px] lg:text-xs text-[var(--color-text-muted)] mt-0.5">Sesi Anda akan berakhir</p>
             </div>
           </div>
         </div>
@@ -223,7 +223,7 @@ export default function Settings() {
               <AlertTriangle className="w-8 h-8 text-red-600 dark:text-red-400" />
             </div>
             <h3 className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-2">Keluar dari Aplikasi?</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mb-8 leading-relaxed">Sesi Anda akan berakhir dan Anda harus login kembali untuk mengakses dashboard.</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mb-8 leading-relaxed">Sesi akan berakhir dan kamu harus login kembali untuk mengakses dashboard.</p>
 
             <div className="flex gap-3">
               <button

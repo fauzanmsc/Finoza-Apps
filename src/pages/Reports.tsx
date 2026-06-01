@@ -71,7 +71,7 @@ export default function Reports() {
   };
 
   return (
-    <div className="p-4 lg:p-8 w-full max-w-5xl mx-auto space-y-6 md:space-y-8 antialiased">
+    <div className="p-4 lg:p-8 w-full max-w-7xl mx-auto space-y-6 md:space-y-8 antialiased">
       {/* Toast notification */}
       {toastMsg && (
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[200] animate-[popIn_0.4s_cubic-bezier(0.16,1,0.3,1)]">
@@ -88,8 +88,8 @@ export default function Reports() {
         </div>
       )}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl md:text-2xl font-bold">Laporan & Kalender</h2>
-        <button onClick={handleExportCSV} className="glass hover:bg-white/10 border border-white/10 px-3 py-1.5 md:px-4 md:py-2 rounded-xl flex items-center gap-2 text-xs md:text-sm font-medium transition-colors hover:border-[var(--color-stabilo)] hover:text-[var(--color-stabilo)]">
+        <h2 className="text-xl md:text-2xl font-bold">Laporan Periode</h2>
+        <button onClick={handleExportCSV} className="bg-positive hover:bg-[#15c57b] text-black px-3 py-1.5 md:px-4 md:py-2 rounded-xl flex items-center gap-2 text-xs md:text-sm font-bold transition-all shadow-[0_0_15px_rgba(30,228,148,0.2)]">
           <Download className="w-4 h-4" /> <span className="hidden md:inline">Export CSV</span>
         </button>
       </div>
@@ -103,7 +103,7 @@ export default function Reports() {
           <ReportOverview 
             totalIncome={data?.total_income || 0} 
             totalExpense={data?.total_expense || 0} 
-            netIncome={data?.net_income || 0} 
+            netIncome={(data?.total_income || 0) - (data?.total_expense || 0)} 
           />
 
           <CalendarView 

@@ -1,11 +1,14 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Calendar, Loader2, FileText } from 'lucide-react';
+import { Calendar, Loader2, FileText, ArrowUpDown } from 'lucide-react';
 import { fetchApi } from '../services/api';
 import { useAuth } from '../store/useAuth';
 
 export default function Journal() {
   const [txs, setTxs] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [accounts, setAccounts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   
   // Default to current month
   const today = new Date();
@@ -18,15 +21,20 @@ export default function Journal() {
   const token = useAuth(state => state.token);
 
   useEffect(() => {
-    loadTxs();
+    loadData();
   }, []);
 
-  const loadTxs = async () => {
+  const loadData = async () => {
     setIsLoading(true);
-    const res = await fetchApi('GET_TRANSACTIONS', {}, token!);
-    if (res.status === 'success') {
-      setTxs(res.data || []);
-    }
+    const [txRes, catRes, accRes] = await Promise.all([
+      fetchApi('GET_TRANSACTIONS', {}, token!),
+      fetchApi('GET_CATEGORIES', {}, token!),
+      fetchApi('GET_ACCOUNTS', {}, token!)
+    ]);
+    
+    if (txRes.status === 'success') setTxs(txRes.data || []);
+    if (catRes.status === 'success') setCategories(catRes.data || []);
+    if (accRes.status === 'success') setAccounts(accRes.data || []);
     setIsLoading(false);
   };
 
@@ -35,8 +43,14 @@ export default function Journal() {
       if (!tx.tx_date) return false;
       const tDate = tx.tx_date.split('T')[0];
       return tDate >= startDate && tDate <= endDate;
-    }).sort((a, b) => new Date(a.tx_date).getTime() - new Date(b.tx_date).getTime());
-  }, [txs, startDate, endDate]);
+    }).sort((a, b) => {
+      const diff = new Date(a.tx_date).getTime() - new Date(b.tx_date).getTime();
+      return sortOrder === 'asc' ? diff : -diff;
+    });
+  }, [txs, startDate, endDate, sortOrder]);
+
+  const catMap = useMemo(() => categories.reduce((acc: any, c: any) => ({ ...acc, [c.id]: c }), {}), [categories]);
+  const accMap = useMemo(() => accounts.reduce((acc: any, a: any) => ({ ...acc, [a.id]: a }), {}), [accounts]);
 
   const { totalDebit, totalKredit } = useMemo(() => {
     let debit = 0;
@@ -83,6 +97,13 @@ export default function Journal() {
                 className="w-full sm:w-auto bg-transparent py-2 pl-9 pr-3 text-sm focus:outline-none text-[var(--color-text-foreground)]"
               />
             </div>
+            <button
+              onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+              className="p-2 sm:ml-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors border border-black/10 dark:border-white/10"
+              title="Urutkan Tanggal"
+            >
+              <ArrowUpDown className="w-4 h-4 text-[var(--color-text-muted)]" />
+            </button>
           </div>
         </div>
       </div>
@@ -108,26 +129,31 @@ export default function Journal() {
                   </td>
                 </tr>
               ) : (
-                filteredTxs.map((tx: any, i: number) => (
-                  <tr key={tx.id || i} className="hover:bg-white/5 transition-colors">
-                    <td className="px-4 py-3 lg:px-6 lg:py-4 text-slate-300">
-                      {new Date(tx.tx_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
-                    </td>
-                    <td className="px-4 py-3 lg:px-6 lg:py-4">
-                      <p className="font-medium text-[var(--color-text-foreground)]">{tx.note || 'Transaksi'}</p>
-                      {tx.category_id && <p className="text-[10px] lg:text-xs text-[var(--color-text-muted)]">{tx.category_id}</p>}
-                    </td>
-                    <td className="px-4 py-3 lg:px-6 lg:py-4 text-slate-300">
-                      {tx.account_src_id || '-'}
-                    </td>
+                filteredTxs.map((tx: any, i: number) => {
+                  const txDate = tx.tx_date ? tx.tx_date.split('T')[0] : '-';
+                  const catName = catMap[tx.category_id]?.name || tx.category_id;
+                  const accName = accMap[tx.account_src_id]?.account_name || tx.account_src_id;
+                  return (
+                    <tr key={tx.id || i} className="hover:bg-white/5 transition-colors">
+                      <td className="px-4 py-3 lg:px-6 lg:py-4 text-slate-300">
+                        {txDate}
+                      </td>
+                      <td className="px-4 py-3 lg:px-6 lg:py-4">
+                        <p className="font-medium text-[var(--color-text-foreground)]">{tx.note || 'Transaksi'}</p>
+                        {tx.category_id && <p className="text-[10px] lg:text-xs text-[var(--color-text-muted)]">{catName}</p>}
+                      </td>
+                      <td className="px-4 py-3 lg:px-6 lg:py-4 text-slate-300">
+                        {accName || '-'}
+                      </td>
                     <td className="px-4 py-3 lg:px-6 lg:py-4 text-right text-positive font-medium">
                       {tx.tx_type === 'Income' ? formatRp(tx.amount) : '-'}
                     </td>
                     <td className="px-4 py-3 lg:px-6 lg:py-4 text-right text-negative font-medium">
                       {tx.tx_type === 'Expense' ? formatRp(tx.amount) : '-'}
                     </td>
-                  </tr>
-                ))
+                    </tr>
+                  );
+                })
               )}
             </tbody>
             {filteredTxs.length > 0 && (

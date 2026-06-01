@@ -14,7 +14,7 @@ export default function AppLayout() {
   return (
     <div className="flex h-screen w-full bg-transparent overflow-hidden text-[var(--color-text-foreground)] transition-all duration-300">
       {/* Desktop Sidebar - Hidden on mobile */}
-      <div className={`hidden lg:block flex-shrink-0 bg-transparent z-10 transition-all duration-300 ${isSidebarCompact ? 'w-20' : 'w-[280px]'}`}>
+      <div className={`hidden lg:block flex-shrink-0 bg-[var(--color-glass-bg)] z-10 transition-all duration-300 ${isSidebarCompact ? 'w-20' : 'w-[280px]'}`}>
         <Sidebar />
       </div>
 
@@ -28,7 +28,7 @@ export default function AppLayout() {
         />
         <div 
           className={`absolute left-0 top-0 h-full w-72 shadow-2xl transition-transform duration-300 ease-in-out z-10 ${isMobileSidebarOpen ? 'translate-x-0 pointer-events-auto' : '-translate-x-full pointer-events-none'}`}
-          style={{ background: 'linear-gradient(135deg, var(--color-background) 0%, var(--color-background-grad-end) 100%)' }}
+          style={{ background: 'var(--color-glass-bg)' }}
         >
           {/* Close button */}
           <button 
@@ -63,13 +63,13 @@ export default function AppLayout() {
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto w-full max-w-[1400px] mx-auto">
+        <div className="flex-1 overflow-y-auto w-full max-w-[1400px] mx-auto px-[10px] lg:px-0">
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
               className="min-h-full pb-22 lg:pb-8"
             >
