@@ -60,7 +60,8 @@ export default function Budget() {
           return sum;
         }, 0);
 
-        const limitVal = Number(b.limit || b.amount_limit || 0);
+        let parsedLimit = Number(b.limit || b.amount_limit || b.amount);
+        const limitVal = isNaN(parsedLimit) ? 0 : parsedLimit;
 
         return {
           ...b,
@@ -130,7 +131,7 @@ export default function Budget() {
           <div className="glass p-5 lg:p-8 rounded-3xl flex flex-col md:flex-row items-center gap-6 lg:gap-8 border border-white/5">
         <div className="relative w-32 h-32 lg:w-48 lg:h-48 flex-shrink-0">
           <svg className="w-full h-full transform -rotate-90" viewBox="0 0 192 192">
-            <circle cx="96" cy="96" r="80" stroke="currentColor" strokeWidth="16" fill="transparent" className="text-black/5 dark:text-white/5" />
+            <circle cx="96" cy="96" r="80" stroke="currentColor" strokeWidth="16" fill="transparent" className="text-white/10" />
             <circle 
               cx="96" cy="96" r="80" 
               stroke="currentColor" 
@@ -138,7 +139,7 @@ export default function Budget() {
               fill="transparent" 
               strokeDasharray="502" 
               strokeDashoffset={502 - (502 * totalPercentCapped) / 100} 
-              className={`transition-all duration-1000 ${totalPercentRaw > 100 ? 'text-negative' : 'text-[var(--color-stabilo)]'}`}
+              className="transition-all duration-1000 text-negative"
               strokeLinecap="round" 
             />
           </svg>
@@ -171,7 +172,8 @@ export default function Budget() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
             {budgets.map((b, i) => {
-              const percent = Math.min(((b.used || 0) / (b.limit || 1)) * 100, 100);
+              const percentRaw = ((b.used || 0) / (b.limit || 1)) * 100;
+              const percentCapped = Math.min(percentRaw, 100);
               const isOver = (b.used || 0) > b.limit;
               const IconComp = ICON_MAP[b.icon_name] || WalletCards;
               
@@ -204,14 +206,14 @@ export default function Budget() {
                   <div className="relative z-10">
                     <div className="flex justify-between items-center mb-2.5">
                       <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">Penggunaan</span>
-                      <span className={`text-xs font-extrabold px-2 py-0.5 rounded-md ${isOver ? 'bg-negative/15 text-negative' : 'bg-white/5 text-[var(--color-text-foreground)]'}`}>{percent.toFixed(0)}%</span>
+                      <span className={`text-xs font-extrabold px-2 py-0.5 rounded-md ${isOver ? 'bg-negative/15 text-negative' : 'bg-white/5 text-[var(--color-text-foreground)]'}`}>{percentRaw.toFixed(0)}%</span>
                     </div>
-                    <div className="h-2 w-full bg-black/10 dark:bg-white/[0.07] rounded-full overflow-hidden shadow-inner">
+                    <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden shadow-inner">
                       <div 
-                        className={`h-full rounded-full transition-all duration-1000 relative ${isOver ? 'bg-gradient-to-r from-red-500 to-rose-400' : ''}`} 
-                        style={{ width: `${percent}%`, backgroundColor: !isOver ? b.color : undefined }}
+                        className="h-full rounded-full transition-all duration-1000 relative bg-negative" 
+                        style={{ width: `${percentCapped}%` }}
                       >
-                         {!isOver && <div className="absolute inset-0 bg-gradient-to-r from-white/0 to-white/25 rounded-full" />}
+                         <div className="absolute inset-0 bg-gradient-to-r from-white/0 to-white/25 rounded-full" />
                       </div>
                     </div>
                     {isOver && (

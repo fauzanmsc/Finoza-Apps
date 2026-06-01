@@ -369,9 +369,28 @@ function handleCreateBudget(authToken, payload) {
   const sheet = getSheet("tb_budgets");
   const newId = 'BDG-' + generateUUID().substring(0,8);
   const now = new Date().toISOString();
-  sheet.appendRow([
-    newId, userId, sanitizeInput(payload.category_id) || '', sanitizeInput(payload.name) || '', payload.limit || 0, sanitizeInput(payload.color) || 'bg-[var(--color-stabilo)]', now
-  ]);
+  
+  const headers = sheet.getDataRange().getValues()[0];
+  if (!headers || headers.length === 0) {
+    return createErrorResponse(500, "Sheet is empty or missing headers");
+  }
+
+  const newRow = new Array(headers.length).fill('');
+  
+  headers.forEach((h, index) => {
+    const header = String(h).toLowerCase().trim();
+    if (header === 'id' || header === 'budget_id') newRow[index] = newId;
+    else if (header === 'user_id') newRow[index] = userId;
+    else if (header === 'category_id') newRow[index] = sanitizeInput(payload.category_id) || '';
+    else if (header === 'month') newRow[index] = payload.month || new Date().getMonth() + 1;
+    else if (header === 'year') newRow[index] = payload.year || new Date().getFullYear();
+    else if (header === 'amount' || header === 'limit' || header === 'amount_limit') newRow[index] = payload.limit || payload.amount || 0;
+    else if (header === 'name' || header === 'budget_name') newRow[index] = sanitizeInput(payload.name) || '';
+    else if (header === 'color' || header === 'color_hex') newRow[index] = sanitizeInput(payload.color) || 'bg-[var(--color-stabilo)]';
+    else if (header === 'created_at') newRow[index] = now;
+  });
+
+  sheet.appendRow(newRow);
   return createSuccessResponse(201, "Budget created", { ...payload, id: newId });
 }
 

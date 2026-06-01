@@ -44,7 +44,8 @@ export default function BudgetModal({ isOpen, onClose, onRefresh, initialData }:
   const loadCategories = async () => {
     const res = await fetchApi('GET_CATEGORIES', {}, token!);
     if (res.status === 'success') {
-      setCategories(res.data || []);
+      const expenseOnly = (res.data || []).filter((c: any) => (c.category_type || '').toLowerCase() === 'expense');
+      setCategories(expenseOnly);
     }
   };
 
@@ -65,17 +66,25 @@ export default function BudgetModal({ isOpen, onClose, onRefresh, initialData }:
       id: initialData?.id,
       name: budgetName,
       limit: limitValue,
+      amount: limitValue,
       amount_limit: limitValue,
+      month: new Date().getMonth() + 1,
+      year: new Date().getFullYear(),
       category_id: selectedCatId || initialData?.category_id,
       color: 'bg-[var(--color-stabilo)]'
     };
 
     const action = initialData ? 'UPDATE_BUDGET' : 'CREATE_BUDGET';
-    await fetchApi(action, payload, token!);
+    const res = await fetchApi(action, payload, token!);
 
+    if (res && res.status === 'success') {
+      onRefresh();
+      onClose();
+    } else {
+      alert("Gagal menyimpan anggaran: " + (res?.message || 'Terjadi kesalahan pada server'));
+    }
+    
     setIsSubmitting(false);
-    onRefresh();
-    onClose();
   };
 
   const formatRupiah = (val: string) => {
@@ -169,7 +178,16 @@ export default function BudgetModal({ isOpen, onClose, onRefresh, initialData }:
             disabled={isSubmitting || (!initialData && !selectedCatId)}
             className="w-full bg-[var(--color-stabilo)] hover:bg-[#b3e600] text-black font-medium py-4 rounded-xl transition-all shadow-[0_0_15px_rgba(204,255,0,0.2)] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? 'Menyimpan...' : 'Simpan Anggaran'}
+            {isSubmitting ? (
+              <div className="flex items-center justify-center gap-2">
+                <span>Menyimpan</span>
+                <div className="flex items-center gap-1">
+                  <div className="w-1.5 h-1.5 bg-black rounded-full animate-[bounce_1s_infinite_0ms]"></div>
+                  <div className="w-1.5 h-1.5 bg-black rounded-full animate-[bounce_1s_infinite_200ms]"></div>
+                  <div className="w-1.5 h-1.5 bg-black rounded-full animate-[bounce_1s_infinite_400ms]"></div>
+                </div>
+              </div>
+            ) : 'Simpan Anggaran'}
           </button>
         </form>
       </div>
