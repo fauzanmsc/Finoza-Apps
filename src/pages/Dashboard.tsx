@@ -15,7 +15,7 @@ const ICON_MAP: Record<string, any> = {
   'smile': Smile,
   'tags': Tags,
 };
-import { AreaChart, Area, Tooltip, ResponsiveContainer, XAxis, YAxis, PieChart, Pie, Cell } from 'recharts';
+import { AreaChart, Area, Tooltip, ResponsiveContainer, XAxis, YAxis, PieChart, Pie, Cell, CartesianGrid } from 'recharts';
 import TransactionModal from '../components/transactions/TransactionModal';
 import { fetchApi } from '../services/api';
 import { useAuth } from '../store/useAuth';
@@ -111,6 +111,9 @@ export default function Dashboard() {
   const [allTransactions, setAllTransactions] = useState<any[]>([]);
   const [periodFilter, setPeriodFilter] = useState('weekly');
   const [chartMonthOffset, setChartMonthOffset] = useState(0);
+  const [insightMonthOffset, setInsightMonthOffset] = useState(0);
+  const [topExpenseMonthOffset, setTopExpenseMonthOffset] = useState(0);
+  const [catMap, setCatMap] = useState<any>({});
   const [imgError, setImgError] = useState(false);
   const [showBalance, setShowBalance] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -149,10 +152,13 @@ export default function Dashboard() {
 
       setAllTransactions(transactions);
 
-      const catMap = categories.reduce((acc: any, cat: any) => {
+      const generatedCatMap = categories.reduce((acc: any, cat: any) => {
         acc[cat.id] = cat;
         return acc;
       }, {});
+      setCatMap(generatedCatMap);
+
+      const catMapToUse = generatedCatMap;
 
       const now = new Date();
       const currentMonthTx = transactions.filter((tx: any) => {
@@ -169,9 +175,9 @@ export default function Dashboard() {
         if (!acc[catId]) {
           acc[catId] = {
             id: catId,
-            name: catMap[catId]?.name || 'Lainnya',
-            icon_name: catMap[catId]?.icon_name || 'tags',
-            color_hex: catMap[catId]?.color_hex || '#ef4444',
+            name: catMapToUse[catId]?.name || 'Lainnya',
+            icon_name: catMapToUse[catId]?.icon_name || 'tags',
+            color_hex: catMapToUse[catId]?.color_hex || '#ef4444',
             amount: 0
           };
         }
@@ -216,9 +222,9 @@ export default function Dashboard() {
         .slice(0, 5)
         .map(tx => ({
           ...tx,
-          category_name: catMap[tx.category_id]?.name || tx.category_id || (tx.tx_type === 'Income' ? 'Pemasukan' : 'Pengeluaran'),
-          icon_name: catMap[tx.category_id]?.icon_name || (tx.tx_type === 'Income' ? 'arrow-down-left' : 'tags'),
-          color_hex: catMap[tx.category_id]?.color_hex || (tx.tx_type === 'Income' ? '#1EE494' : '#FF4D4D')
+          category_name: catMapToUse[tx.category_id]?.name || tx.category_id || (tx.tx_type === 'Income' ? 'Pemasukan' : 'Pengeluaran'),
+          icon_name: catMapToUse[tx.category_id]?.icon_name || (tx.tx_type === 'Income' ? 'arrow-down-left' : 'tags'),
+          color_hex: catMapToUse[tx.category_id]?.color_hex || (tx.tx_type === 'Income' ? '#1EE494' : '#FF4D4D')
         }));
 
       setData({
@@ -257,13 +263,7 @@ export default function Dashboard() {
     setIsModalOpen(true);
   };
 
-  // Pie chart data
-  const pieData = [
-    { name: 'Pemasukan', value: data.total_income || 0, color: '#1EE494' },
-    { name: 'Pengeluaran', value: data.total_expense || 0, color: '#FF4D4D' },
-  ].filter(d => d.value > 0);
-
-  const savingRatio = data.total_income > 0 ? Math.max(0, Math.round(((data.total_income - data.total_expense) / data.total_income) * 100)) : 0;
+  // Pie chart data moved to dynamic block
 
   const getBankColor = (name: string, colorHex?: string) => {
     if (colorHex) return colorHex;
@@ -300,37 +300,38 @@ export default function Dashboard() {
     let endDate = new Date();
     let formatFullDate = (d: Date) => d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
     let formatLabel = (d: Date) => d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
-    
+
     let datesToGenerate: Date[] = [];
 
     if (periodFilter === 'weekly') {
       startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6 + (chartMonthOffset * 7), 0, 0, 0);
       endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (chartMonthOffset * 7), 23, 59, 59);
-      
+
       for (let i = 0; i <= 6; i++) {
-         const d = new Date(startDate);
-         d.setDate(d.getDate() + i);
-         datesToGenerate.push(d);
+        const d = new Date(startDate);
+        d.setDate(d.getDate() + i);
+        datesToGenerate.push(d);
       }
     } else if (periodFilter === 'monthly') {
       startDate = new Date(now.getFullYear(), now.getMonth() + chartMonthOffset, 1);
       endDate = new Date(now.getFullYear(), now.getMonth() + chartMonthOffset + 1, 0, 23, 59, 59);
-      
+      formatLabel = (d: Date) => d.getDate().toString().padStart(2, '0');
+
       const daysInMonth = endDate.getDate();
       for (let i = 1; i <= daysInMonth; i++) {
-         const d = new Date(startDate);
-         d.setDate(i);
-         datesToGenerate.push(d);
+        const d = new Date(startDate);
+        d.setDate(i);
+        datesToGenerate.push(d);
       }
     } else if (periodFilter === 'yearly') {
       startDate = new Date(now.getFullYear() + chartMonthOffset, 0, 1);
       endDate = new Date(now.getFullYear() + chartMonthOffset, 11, 31, 23, 59, 59);
       formatLabel = (d: Date) => d.toLocaleDateString('id-ID', { month: 'short' });
       formatFullDate = (d: Date) => d.toLocaleDateString('id-ID', { month: 'short', year: 'numeric' });
-      
+
       for (let i = 0; i < 12; i++) {
-         const d = new Date(startDate.getFullYear(), i, 1);
-         datesToGenerate.push(d);
+        const d = new Date(startDate.getFullYear(), i, 1);
+        datesToGenerate.push(d);
       }
     }
 
@@ -354,14 +355,14 @@ export default function Dashboard() {
       const d = parseTxDate(tx.tx_date)!;
       let matchIndex = -1;
       if (periodFilter === 'yearly') {
-         matchIndex = result.findIndex(r => r.date.getMonth() === d.getMonth() && r.date.getFullYear() === d.getFullYear());
+        matchIndex = result.findIndex(r => r.date.getMonth() === d.getMonth() && r.date.getFullYear() === d.getFullYear());
       } else {
-         matchIndex = result.findIndex(r => r.date.getDate() === d.getDate() && r.date.getMonth() === d.getMonth() && r.date.getFullYear() === d.getFullYear());
+        matchIndex = result.findIndex(r => r.date.getDate() === d.getDate() && r.date.getMonth() === d.getMonth() && r.date.getFullYear() === d.getFullYear());
       }
 
       if (matchIndex !== -1) {
-         if (tx.tx_type === 'Income') result[matchIndex].income += Number(tx.amount || 0);
-         if (tx.tx_type === 'Expense') result[matchIndex].expense += Number(tx.amount || 0);
+        if (tx.tx_type === 'Income') result[matchIndex].income += Number(tx.amount || 0);
+        if (tx.tx_type === 'Expense') result[matchIndex].expense += Number(tx.amount || 0);
       }
     });
 
@@ -369,6 +370,54 @@ export default function Dashboard() {
   };
 
   const cashflowData = getFilteredCashflow();
+
+  // Dynamic Insight and Top Expenses
+  const renderNow = new Date();
+
+  const insightTargetDate = new Date(renderNow.getFullYear(), renderNow.getMonth() + insightMonthOffset, 1);
+  const insightMonthTx = allTransactions.filter(tx => {
+    const d = parseTxDate(tx.tx_date);
+    if (!d) return false;
+    return d.getMonth() === insightTargetDate.getMonth() && d.getFullYear() === insightTargetDate.getFullYear();
+  });
+  const dynamicInsightIncome = insightMonthTx.filter(tx => tx.tx_type === 'Income').reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0);
+  const dynamicInsightExpense = insightMonthTx.filter(tx => tx.tx_type === 'Expense').reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0);
+
+  const topExpenseTargetDate = new Date(renderNow.getFullYear(), renderNow.getMonth() + topExpenseMonthOffset, 1);
+  const topExpenseMonthTx = allTransactions.filter(tx => {
+    const d = parseTxDate(tx.tx_date);
+    if (!d) return false;
+    return d.getMonth() === topExpenseTargetDate.getMonth() && d.getFullYear() === topExpenseTargetDate.getFullYear();
+  });
+  const expenseByCategory = topExpenseMonthTx.filter(tx => tx.tx_type === 'Expense').reduce((acc: any, tx: any) => {
+    const catId = tx.category_id || 'Lainnya';
+    if (!acc[catId]) {
+      acc[catId] = {
+        id: catId,
+        name: catMap[catId]?.name || 'Lainnya',
+        icon_name: catMap[catId]?.icon_name || 'tags',
+        color_hex: catMap[catId]?.color_hex || '#ef4444',
+        amount: 0
+      };
+    }
+    acc[catId].amount += (Number(tx.amount) || 0);
+    return acc;
+  }, {} as Record<string, any>);
+  const dynamicTopExpenses = Object.values(expenseByCategory)
+    .sort((a: any, b: any) => b.amount - a.amount)
+    .slice(0, 5);
+
+  const formatFilterMonth = (offset: number) => {
+    return new Date(renderNow.getFullYear(), renderNow.getMonth() + offset, 1).toLocaleDateString('id-ID', { month: 'short', year: 'numeric' });
+  };
+
+  const pieData = [
+    { name: 'Pemasukan', value: dynamicInsightIncome || 0, color: '#1EE494' },
+    { name: 'Pengeluaran', value: dynamicInsightExpense || 0, color: '#FF4D4D' },
+  ].filter(d => d.value > 0);
+
+  const savingRatio = dynamicInsightIncome > 0 ? Math.max(0, Math.round(((dynamicInsightIncome - dynamicInsightExpense) / dynamicInsightIncome) * 100)) : 0;
+  const dynamicInsightTotal = dynamicInsightIncome + dynamicInsightExpense;
 
   return (
     <div className="w-full overflow-x-hidden lg:overflow-x-visible">
@@ -395,7 +444,7 @@ export default function Dashboard() {
             <h2 className="font-bold text-[16px] leading-tight truncate text-[var(--color-text-foreground)]">
               Selamat datang, <span className="text-[var(--color-stabilo)]">{user?.full_name?.split(' ')[0] || 'User'}</span> 👋
             </h2>
-            <p className="text-[var(--color-text-muted)] text-[11px]">Berikut ringkasan keuangan Anda hari ini.</p>
+            <p className="text-[var(--color-text-muted)] text-[11px]">Berikut ringkasan keuanganmu saat ini</p>
           </div>
         </div>
 
@@ -419,7 +468,7 @@ export default function Dashboard() {
 
           {/* Sub-cards: Pemasukan & Pengeluaran */}
           <div className="flex gap-2 mt-4">
-            <button onClick={() => openModal('Income')} className="flex-1 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-xl p-3 flex items-center gap-2 active:scale-95 transition-transform">
+            <button onClick={() => openModal('Income')} className="flex-1 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-xl px-3 py-2 flex items-center gap-2 active:scale-95 transition-transform">
               <div className="w-8 h-8 rounded-lg bg-positive/10 flex items-center justify-center flex-shrink-0">
                 <ArrowDownRight className="w-4 h-4 text-positive stroke-[2.5px]" />
               </div>
@@ -428,7 +477,7 @@ export default function Dashboard() {
                 <p className="font-bold text-[12px] text-[var(--color-text-foreground)] tracking-tight truncate">{showBalance ? formatRp(data.total_income) : 'Rp ••••'}</p>
               </div>
             </button>
-            <button onClick={() => openModal('Expense')} className="flex-1 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-xl p-3 flex items-center gap-2 active:scale-95 transition-transform">
+            <button onClick={() => openModal('Expense')} className="flex-1 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-xl px-3 py-2 flex items-center gap-2 active:scale-95 transition-transform">
               <div className="w-8 h-8 rounded-lg bg-negative/10 flex items-center justify-center flex-shrink-0">
                 <ArrowUpRight className="w-4 h-4 text-negative stroke-[2.5px]" />
               </div>
@@ -474,7 +523,14 @@ export default function Dashboard() {
           {/* Insight Bulan Ini */}
           <div className="glass rounded-2xl p-4 flex flex-col">
             <div className="flex justify-between items-center mb-3">
-              <h3 className="text-xs font-medium text-[var(--color-text-foreground)]">Insight Bulan Ini</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-xs font-medium text-[var(--color-text-foreground)]">Insight Bulanan</h3>
+                <div className="flex items-center bg-black/5 dark:bg-white/5 rounded-md px-1 h-[22px]">
+                  <button onClick={() => setInsightMonthOffset(p => p - 1)} className="px-1.5 text-[10px] text-[var(--color-text-muted)] hover:text-[var(--color-text-foreground)]">&lt;</button>
+                  <span className="text-[9px] min-w-[50px] text-center text-[var(--color-text-foreground)]">{formatFilterMonth(insightMonthOffset)}</span>
+                  <button onClick={() => setInsightMonthOffset(p => p + 1)} disabled={insightMonthOffset >= 0} className={`px-1.5 text-[10px] ${insightMonthOffset >= 0 ? 'opacity-30 text-[var(--color-text-muted)] cursor-not-allowed' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-foreground)]'}`}>&gt;</button>
+                </div>
+              </div>
               <button className="text-[var(--color-text-muted)]"><MoreHorizontal className="w-3.5 h-3.5" /></button>
             </div>
             {pieData.length > 0 ? (
@@ -483,25 +539,25 @@ export default function Dashboard() {
                   <div className="absolute inset-2 rounded-full bg-[#1EE494] opacity-[0.12] blur-[12px] animate-[pulse_4s_ease-in-out_infinite]" />
                   <ResponsiveContainer width="100%" height="100%" style={{ overflow: 'visible' }}>
                     <PieChart style={{ overflow: 'visible' }}>
-                      <Tooltip content={<PieCustomTooltip total={data.total_income + data.total_expense} />} cursor={false} wrapperStyle={{ zIndex: 100 }} />
+                      <Tooltip content={<PieCustomTooltip total={dynamicInsightTotal} />} cursor={false} wrapperStyle={{ zIndex: 100 }} />
                       <Pie data={pieData} cx="50%" cy="50%" innerRadius="60%" outerRadius="88%" paddingAngle={2} dataKey="value" stroke="none">
                         {pieData.map((entry, idx) => <Cell key={idx} fill={entry.color} />)}
                       </Pie>
                     </PieChart>
                   </ResponsiveContainer>
                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <span className="text-lg font-extrabold leading-none">{(data.total_income + data.total_expense) > 0 ? Math.round((data.total_income / (data.total_income + data.total_expense)) * 100) : 0}%</span>
+                    <span className="text-lg font-extrabold leading-none">{dynamicInsightTotal > 0 ? Math.round((dynamicInsightIncome / dynamicInsightTotal) * 100) : 0}%</span>
                     <span className="text-[7px] text-[var(--color-text-muted)] mt-0.5 font-medium">Pemasukan</span>
                   </div>
                 </div>
                 <div className="w-full space-y-1.5 text-[10px]">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-positive" /><span className="text-[var(--color-text-muted)]">Pemasukan</span></div>
-                    <span className="text-positive font-semibold">{formatRp(data.total_income)}</span>
+                    <span className="text-positive font-semibold">{formatRp(dynamicInsightIncome)}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-negative" /><span className="text-[var(--color-text-muted)]">Pengeluaran</span></div>
-                    <span className="text-negative font-semibold">{formatRp(data.total_expense)}</span>
+                    <span className="text-negative font-semibold">{formatRp(dynamicInsightExpense)}</span>
                   </div>
                 </div>
                 <div className="w-full mt-3 pt-3 border-t border-black/5 dark:border-white/5">
@@ -533,14 +589,14 @@ export default function Dashboard() {
                 className="w-28 flex-shrink-0"
                 buttonClassName="!h-[28px] !text-[10px] !px-2"
               />
-              <div className="flex items-center bg-black/5 dark:bg-white/5 rounded-lg border border-black/5 dark:border-white/10 h-[28px] flex-1 max-w-[200px]">
-                <button onClick={() => setChartMonthOffset(prev => prev - 1)} className="px-2.5 h-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors rounded-l-lg border-r border-black/5 dark:border-white/10 text-[var(--color-text-muted)] hover:text-[var(--color-text-foreground)] text-[10px] flex items-center justify-center">
+              <div className="flex items-center bg-white/50 dark:bg-black/20 backdrop-blur-md rounded-lg border border-black/10 dark:border-white/10 h-[28px] flex-1 max-w-[200px]">
+                <button onClick={() => setChartMonthOffset(prev => prev - 1)} className="px-2.5 h-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors rounded-l-lg border-r border-black/10 dark:border-white/10 text-[var(--color-text-muted)] hover:text-[var(--color-text-foreground)] text-[10px] flex items-center justify-center">
                   &lt;
                 </button>
                 <span className="text-[10px] px-2 font-medium flex-1 text-center text-[var(--color-text-foreground)] flex items-center justify-center h-full">
                   {getPeriodLabel()}
                 </span>
-                <button onClick={() => setChartMonthOffset(prev => prev + 1)} disabled={chartMonthOffset >= 0} className={`px-2.5 h-full transition-colors rounded-r-lg border-l border-black/5 dark:border-white/10 text-[10px] flex items-center justify-center ${chartMonthOffset >= 0 ? 'opacity-30 cursor-not-allowed text-[var(--color-text-muted)]' : 'hover:bg-black/5 dark:hover:bg-white/10 hover:text-[var(--color-text-foreground)] text-[var(--color-text-muted)]'}`}>
+                <button onClick={() => setChartMonthOffset(prev => prev + 1)} disabled={chartMonthOffset >= 0} className={`px-2.5 h-full transition-colors rounded-r-lg border-l border-black/10 dark:border-white/10 text-[10px] flex items-center justify-center ${chartMonthOffset >= 0 ? 'opacity-30 cursor-not-allowed text-[var(--color-text-muted)]' : 'hover:bg-black/5 dark:hover:bg-white/10 hover:text-[var(--color-text-foreground)] text-[var(--color-text-muted)]'}`}>
                   &gt;
                 </button>
               </div>
@@ -563,8 +619,9 @@ export default function Dashboard() {
                     <stop offset="95%" stopColor="#EF4444" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 10 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: '#94a3b8', fontSize: 9 }} axisLine={false} tickLine={false} tickFormatter={formatAxisTick} width={35} />
+                <CartesianGrid vertical={false} stroke="rgba(148, 163, 184, 0.1)" strokeDasharray="4 4" />
+                <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 10 }} axisLine={false} tickLine={false} interval={periodFilter === 'monthly' ? 0 : 'preserveStartEnd'} />
+                <YAxis tick={{ fill: '#94a3b8', fontSize: 9 }} axisLine={{ stroke: 'rgba(148, 163, 184, 0.2)' }} tickLine={false} tickFormatter={formatAxisTick} width={35} />
                 <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.15)', strokeWidth: 1, strokeDasharray: '4 4' }} />
                 <Area type="monotone" dataKey="income" stroke="#10B981" strokeWidth={2} fillOpacity={1} fill="url(#mIncome)" name="Pemasukan" />
                 <Area type="monotone" dataKey="expense" stroke="#EF4444" strokeWidth={2} fillOpacity={1} fill="url(#mExpense)" name="Pengeluaran" />
@@ -576,12 +633,19 @@ export default function Dashboard() {
         {/* Top Pengeluaran */}
         <div className="glass rounded-2xl p-4 mb-4">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-xs font-medium text-[var(--color-text-foreground)]">Top Pengeluaran</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-xs font-medium text-[var(--color-text-foreground)]">Top Pengeluaran</h3>
+              <div className="flex items-center bg-black/5 dark:bg-white/5 rounded-md px-1 h-[22px]">
+                <button onClick={() => setTopExpenseMonthOffset(p => p - 1)} className="px-1.5 text-[10px] text-[var(--color-text-muted)] hover:text-[var(--color-text-foreground)]">&lt;</button>
+                <span className="text-[9px] min-w-[50px] text-center text-[var(--color-text-foreground)]">{formatFilterMonth(topExpenseMonthOffset)}</span>
+                <button onClick={() => setTopExpenseMonthOffset(p => p + 1)} disabled={topExpenseMonthOffset >= 0} className={`px-1.5 text-[10px] ${topExpenseMonthOffset >= 0 ? 'opacity-30 text-[var(--color-text-muted)] cursor-not-allowed' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-foreground)]'}`}>&gt;</button>
+              </div>
+            </div>
             <button onClick={() => navigate('/transactions')} className="text-[10px] text-positive font-medium">Lihat Semua</button>
           </div>
           <div className="space-y-4">
-            {data.top_expenses && data.top_expenses.length > 0 ? data.top_expenses.map((cat: any, i: number) => {
-              const maxAmt = Math.max(...data.top_expenses.map((c: any) => c.amount));
+            {dynamicTopExpenses && dynamicTopExpenses.length > 0 ? dynamicTopExpenses.map((cat: any, i: number) => {
+              const maxAmt = Math.max(...dynamicTopExpenses.map((c: any) => c.amount));
               const pct = maxAmt > 0 ? (cat.amount / maxAmt) * 100 : 0;
               return (
                 <div key={i} className="flex items-center gap-3">
@@ -672,7 +736,7 @@ export default function Dashboard() {
                 <h2 className="text-[28px] lg:text-[32px] font-extrabold tracking-tight mb-1">
                   Selamat datang, <span className="text-[var(--color-stabilo)]">{user?.full_name?.split(' ')[0] || 'User'}</span> 👋
                 </h2>
-                <p className="text-[var(--color-text-muted)] text-[15px]">Berikut ringkasan keuangan Anda hari ini.</p>
+                <p className="text-[var(--color-text-muted)] text-[15px]">Berikut ringkasan keuanganmu saat ini</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -685,7 +749,7 @@ export default function Dashboard() {
         </div>
 
         {/* Constrained main content */}
-        <div className="w-full max-w-7xl mx-auto p-4 lg:p-8 pt-[15px] lg:pt-[15px] space-y-6 relative z-10">
+        <div className="w-full max-w-7xl mx-auto p-4 lg:p-8 pt-[15px] lg:pt-[15px] mt-[15px] space-y-6 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 relative z-10">
             {/* Row 1: Saldo Bersih, Akun Rekening, Insight Bulan Ini */}
 
@@ -712,7 +776,7 @@ export default function Dashboard() {
                 </div>
 
                 <div className="mt-auto pt-6 flex flex-row items-center gap-2 xl:gap-3 z-10 relative w-full">
-                  <div className="flex-1 min-w-0 bg-black/5 dark:bg-white/5 rounded-xl xl:rounded-[20px] p-2 lg:p-2.5 xl:p-4 flex items-center gap-1.5 lg:gap-2 xl:gap-3 shadow-sm border border-black/5 dark:border-white/5 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/10 dark:hover:shadow-black/20 hover:border-black/10 dark:hover:border-white/10 transition-all duration-300 cursor-pointer">
+                  <div className="flex-1 min-w-0 bg-black/5 dark:bg-white/5 rounded-xl xl:rounded-[20px] px-2 py-1.5 lg:px-3 lg:py-2 xl:px-4 xl:py-2.5 flex items-center gap-1.5 lg:gap-2 xl:gap-3 shadow-sm border border-black/5 dark:border-white/5 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/10 dark:hover:shadow-black/20 hover:border-black/10 dark:hover:border-white/10 transition-all duration-300 cursor-pointer">
                     <div className="w-7 h-7 lg:w-8 lg:h-8 xl:w-11 xl:h-11 rounded-lg xl:rounded-[14px] bg-positive/10 flex items-center justify-center flex-shrink-0">
                       <ArrowDownRight className="w-3.5 h-3.5 lg:w-4 lg:h-4 xl:w-5 xl:h-5 text-positive stroke-[2.5px]" />
                     </div>
@@ -721,7 +785,7 @@ export default function Dashboard() {
                       <p className="font-bold text-[11px] lg:text-[12px] xl:text-[15px] text-[var(--color-text-foreground)] tracking-tight leading-tight">{showBalance ? formatRp(data.total_income) : 'Rp ••••'}</p>
                     </div>
                   </div>
-                  <div className="flex-1 min-w-0 bg-black/5 dark:bg-white/5 rounded-xl xl:rounded-[20px] p-2 lg:p-2.5 xl:p-4 flex items-center gap-1.5 lg:gap-2 xl:gap-3 shadow-sm border border-black/5 dark:border-white/5 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/10 dark:hover:shadow-black/20 hover:border-black/10 dark:hover:border-white/10 transition-all duration-300 cursor-pointer">
+                  <div className="flex-1 min-w-0 bg-black/5 dark:bg-white/5 rounded-xl xl:rounded-[20px] px-2 py-1.5 lg:px-3 lg:py-2 xl:px-4 xl:py-2.5 flex items-center gap-1.5 lg:gap-2 xl:gap-3 shadow-sm border border-black/5 dark:border-white/5 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/10 dark:hover:shadow-black/20 hover:border-black/10 dark:hover:border-white/10 transition-all duration-300 cursor-pointer">
                     <div className="w-7 h-7 lg:w-8 lg:h-8 xl:w-11 xl:h-11 rounded-lg xl:rounded-[14px] bg-negative/10 flex items-center justify-center flex-shrink-0">
                       <ArrowUpRight className="w-3.5 h-3.5 lg:w-4 lg:h-4 xl:w-5 xl:h-5 text-negative stroke-[2.5px]" />
                     </div>
@@ -787,21 +851,28 @@ export default function Dashboard() {
             {/* Insight Bulan Ini */}
             <div className="lg:col-span-4 flex flex-col">
               <div className="glass hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/20 transition-all duration-300 rounded-2xl p-6 flex-1 flex flex-col">
-                <h3 className="font-medium mb-6 text-[var(--color-text-foreground)]">Insight Bulan Ini</h3>
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="font-medium text-[var(--color-text-foreground)]">Insight Bulanan</h3>
+                  <div className="flex items-center bg-black/5 dark:bg-white/5 rounded-md px-1.5 h-[28px]">
+                    <button onClick={() => setInsightMonthOffset(p => p - 1)} className="px-2 text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-foreground)]">&lt;</button>
+                    <span className="text-[11px] min-w-[70px] text-center font-medium text-[var(--color-text-foreground)]">{formatFilterMonth(insightMonthOffset)}</span>
+                    <button onClick={() => setInsightMonthOffset(p => p + 1)} disabled={insightMonthOffset >= 0} className={`px-2 text-xs ${insightMonthOffset >= 0 ? 'opacity-30 text-[var(--color-text-muted)] cursor-not-allowed' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-foreground)]'}`}>&gt;</button>
+                  </div>
+                </div>
                 {pieData.length > 0 ? (
                   <div className="flex flex-row items-center justify-between flex-1 gap-4">
                     <div className="w-[120px] h-[120px] xl:w-[160px] xl:h-[160px] relative flex-shrink-0">
                       <div className="absolute inset-3 rounded-full bg-[#1EE494] opacity-[0.15] blur-[20px] animate-[pulse_4s_ease-in-out_infinite]" />
                       <ResponsiveContainer width="100%" height="100%" style={{ overflow: 'visible' }}>
                         <PieChart style={{ overflow: 'visible' }}>
-                          <Tooltip content={<PieCustomTooltip total={data.total_income + data.total_expense} />} cursor={false} wrapperStyle={{ zIndex: 100 }} />
+                          <Tooltip content={<PieCustomTooltip total={dynamicInsightTotal} />} cursor={false} wrapperStyle={{ zIndex: 100 }} />
                           <Pie data={pieData} cx="50%" cy="50%" innerRadius="65%" outerRadius="90%" paddingAngle={0} dataKey="value" stroke="none">
                             {pieData.map((entry, idx) => <Cell key={idx} fill={entry.color} />)}
                           </Pie>
                         </PieChart>
                       </ResponsiveContainer>
                       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                        <span className="text-2xl xl:text-3xl font-extrabold">{(data.total_income + data.total_expense) > 0 ? Math.round((data.total_income / (data.total_income + data.total_expense)) * 100) : 0}%</span>
+                        <span className="text-2xl xl:text-3xl font-extrabold">{dynamicInsightTotal > 0 ? Math.round((dynamicInsightIncome / dynamicInsightTotal) * 100) : 0}%</span>
                         <span className="text-[9px] xl:text-[10px] text-[var(--color-text-muted)] mt-1 font-medium tracking-wide">Pemasukan</span>
                       </div>
                     </div>
@@ -813,7 +884,7 @@ export default function Dashboard() {
                           <span className="text-xs text-[var(--color-text-muted)]">Pemasukan</span>
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-semibold text-positive">{formatRp(data.total_income)}</span>
+                          <span className="text-sm font-semibold text-positive">{formatRp(dynamicInsightIncome)}</span>
                         </div>
                       </div>
                       <div>
@@ -822,11 +893,11 @@ export default function Dashboard() {
                           <span className="text-xs text-[var(--color-text-muted)]">Pengeluaran</span>
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-semibold text-negative">{formatRp(data.total_expense)}</span>
+                          <span className="text-sm font-semibold text-negative">{formatRp(dynamicInsightExpense)}</span>
                         </div>
                       </div>
 
-                      <div className="bg-black/5 dark:bg-white/5 rounded-xl p-4 border border-black/5 dark:border-white/10 hover:-translate-y-1 hover:shadow-lg transition-all duration-300 cursor-pointer">
+                      <div className="bg-black/5 dark:bg-white/5 rounded-xl px-4 py-2.5 border border-black/5 dark:border-white/10 hover:-translate-y-1 hover:shadow-lg transition-all duration-300 cursor-pointer">
                         <div className="flex justify-between items-center mb-1">
                           <span className="text-xs text-[var(--color-text-muted)]">Rasio Tabungan</span>
                           <span className="text-xs font-bold">{savingRatio}%</span>
@@ -863,14 +934,14 @@ export default function Dashboard() {
                         className="w-32"
                         buttonClassName="!h-[32px] !text-xs !px-3"
                       />
-                      <div className="flex items-center bg-black/5 dark:bg-white/5 rounded-lg border border-black/5 dark:border-white/10 h-[32px]">
-                        <button onClick={() => setChartMonthOffset(prev => prev - 1)} className="px-3 h-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors rounded-l-lg border-r border-black/5 dark:border-white/10 text-[var(--color-text-muted)] hover:text-[var(--color-text-foreground)] flex items-center justify-center">
+                      <div className="flex items-center bg-white/50 dark:bg-black/20 backdrop-blur-md rounded-lg border border-black/10 dark:border-white/10 h-[32px]">
+                        <button onClick={() => setChartMonthOffset(prev => prev - 1)} className="px-3 h-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors rounded-l-lg border-r border-black/10 dark:border-white/10 text-[var(--color-text-muted)] hover:text-[var(--color-text-foreground)] flex items-center justify-center">
                           &lt;
                         </button>
                         <span className="text-xs px-3 font-medium min-w-[120px] text-center text-[var(--color-text-foreground)] flex items-center justify-center h-full">
                           {getPeriodLabel()}
                         </span>
-                        <button onClick={() => setChartMonthOffset(prev => prev + 1)} disabled={chartMonthOffset >= 0} className={`px-3 h-full transition-colors rounded-r-lg border-l border-black/5 dark:border-white/10 flex items-center justify-center ${chartMonthOffset >= 0 ? 'opacity-30 cursor-not-allowed text-[var(--color-text-muted)]' : 'hover:bg-black/5 dark:hover:bg-white/10 hover:text-[var(--color-text-foreground)] text-[var(--color-text-muted)]'}`}>
+                        <button onClick={() => setChartMonthOffset(prev => prev + 1)} disabled={chartMonthOffset >= 0} className={`px-3 h-full transition-colors rounded-r-lg border-l border-black/10 dark:border-white/10 flex items-center justify-center ${chartMonthOffset >= 0 ? 'opacity-30 cursor-not-allowed text-[var(--color-text-muted)]' : 'hover:bg-black/5 dark:hover:bg-white/10 hover:text-[var(--color-text-foreground)] text-[var(--color-text-muted)]'}`}>
                           &gt;
                         </button>
                       </div>
@@ -898,8 +969,9 @@ export default function Dashboard() {
                           <feComposite in="SourceGraphic" in2="blur" operator="over" />
                         </filter>
                       </defs>
-                      <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={{ stroke: '#ffffff20' }} tickLine={false} dy={10} />
-                      <YAxis tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={formatAxisTick} />
+                      <CartesianGrid vertical={false} stroke="rgba(148, 163, 184, 0.1)" strokeDasharray="4 4" />
+                      <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={{ stroke: '#ffffff20' }} tickLine={false} dy={10} interval={periodFilter === 'monthly' ? 0 : 'preserveStartEnd'} />
+                      <YAxis tick={{ fill: '#94a3b8', fontSize: 11 }} axisLine={{ stroke: 'rgba(148, 163, 184, 0.2)' }} tickLine={false} tickFormatter={formatAxisTick} />
                       <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.15)', strokeWidth: 1, strokeDasharray: '4 4' }} />
                       <Area type="monotone" dataKey="income" stroke="#1EE494" strokeWidth={2} fillOpacity={1} fill="url(#dIncome)" name="Pemasukan" style={{ filter: 'url(#glow)' }} />
                       <Area type="monotone" dataKey="expense" stroke="#FF4D4D" strokeWidth={2} fillOpacity={1} fill="url(#dExpense)" name="Pengeluaran" style={{ filter: 'url(#glow)' }} />
@@ -912,15 +984,22 @@ export default function Dashboard() {
             {/* Top Pengeluaran */}
             <div className="lg:col-span-4 flex flex-col">
               <div className="glass hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/20 transition-all duration-300 rounded-2xl p-6 flex-1 flex flex-col">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2 bg-[var(--color-stabilo)]/10 text-[var(--color-stabilo)] rounded-xl border border-[var(--color-stabilo)]/20 shadow-[0_0_15px_rgba(204,255,0,0.1)]">
-                    <Crown className="w-5 h-5" />
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-[var(--color-stabilo)]/10 text-[var(--color-stabilo)] rounded-xl border border-[var(--color-stabilo)]/20 shadow-[0_0_15px_rgba(204,255,0,0.1)]">
+                      <Crown className="w-5 h-5" />
+                    </div>
+                    <h3 className="font-medium text-[var(--color-text-foreground)]">Top Pengeluaran</h3>
                   </div>
-                  <h3 className="font-medium text-[var(--color-text-foreground)]">Top Pengeluaran</h3>
+                  <div className="flex items-center bg-black/5 dark:bg-white/5 rounded-md px-1.5 h-[28px]">
+                    <button onClick={() => setTopExpenseMonthOffset(p => p - 1)} className="px-2 text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-foreground)]">&lt;</button>
+                    <span className="text-[11px] min-w-[70px] text-center font-medium text-[var(--color-text-foreground)]">{formatFilterMonth(topExpenseMonthOffset)}</span>
+                    <button onClick={() => setTopExpenseMonthOffset(p => p + 1)} disabled={topExpenseMonthOffset >= 0} className={`px-2 text-xs ${topExpenseMonthOffset >= 0 ? 'opacity-30 text-[var(--color-text-muted)] cursor-not-allowed' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-foreground)]'}`}>&gt;</button>
+                  </div>
                 </div>
                 <div className="space-y-5 flex-1">
-                  {data.top_expenses && data.top_expenses.length > 0 ? data.top_expenses.map((cat: any, i: number) => {
-                    const maxAmt = Math.max(...data.top_expenses.map((c: any) => c.amount));
+                  {dynamicTopExpenses && dynamicTopExpenses.length > 0 ? dynamicTopExpenses.map((cat: any, i: number) => {
+                    const maxAmt = Math.max(...dynamicTopExpenses.map((c: any) => c.amount));
                     const pct = maxAmt > 0 ? (cat.amount / maxAmt) * 100 : 0;
                     return (
                       <div key={i} className="group">

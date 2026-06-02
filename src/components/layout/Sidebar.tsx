@@ -136,7 +136,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
                   "w-full flex items-center justify-start gap-3 py-3.5 rounded-2xl transition-all duration-300 text-[15px] border-none outline-none cursor-pointer",
                   isSidebarCompact ? "justify-center px-0" : "px-4",
                   location.pathname === item.path
-                    ? "bg-[var(--color-stabilo)] text-[#0B101E] font-extrabold shadow-lg shadow-[var(--color-stabilo)]/20"
+                    ? "bg-gradient-to-r from-[var(--color-stabilo)] to-[#f4ffcc] text-[#0B101E] font-bold shadow-[0_0_15px_rgba(204,255,0,0.2)]"
                     : "text-[var(--color-text-muted)] font-medium hover:text-[var(--color-text-foreground)] hover:bg-black/5 dark:hover:bg-white/5"
                 )}
                 title={isSidebarCompact ? item.label : undefined}

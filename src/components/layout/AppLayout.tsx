@@ -14,7 +14,7 @@ export default function AppLayout() {
   return (
     <div className="flex h-screen w-full bg-transparent overflow-hidden text-[var(--color-text-foreground)] transition-all duration-300">
       {/* Desktop Sidebar - Hidden on mobile */}
-      <div className={`hidden lg:block flex-shrink-0 bg-[var(--color-glass-bg)] z-10 transition-all duration-300 ${isSidebarCompact ? 'w-20' : 'w-[280px]'}`}>
+      <div className={`hidden lg:block flex-shrink-0 bg-[var(--color-glass-bg)] z-10 transition-all duration-300 rounded-r-[2rem] border-r border-black/5 dark:border-white/5 shadow-[4px_0_24px_rgba(0,0,0,0.02)] dark:shadow-[4px_0_24px_rgba(0,0,0,0.2)] ${isSidebarCompact ? 'w-20' : 'w-[280px]'}`}>
         <Sidebar />
       </div>
 
@@ -27,7 +27,7 @@ export default function AppLayout() {
           onClick={() => setIsMobileSidebarOpen(false)} 
         />
         <div 
-          className={`absolute left-0 top-0 h-full w-72 shadow-2xl transition-transform duration-300 ease-in-out z-10 ${isMobileSidebarOpen ? 'translate-x-0 pointer-events-auto' : '-translate-x-full pointer-events-none'}`}
+          className={`absolute left-0 top-0 h-full w-72 shadow-2xl rounded-r-[2rem] border-r border-black/5 dark:border-white/5 transition-transform duration-300 ease-in-out z-10 ${isMobileSidebarOpen ? 'translate-x-0 pointer-events-auto' : '-translate-x-full pointer-events-none'}`}
           style={{ background: 'var(--color-glass-bg)' }}
         >
           {/* Close button */}
