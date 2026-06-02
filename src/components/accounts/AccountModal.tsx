@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, WalletCards, Building2, Smartphone, Banknote, CreditCard, PiggyBank, Landmark, CircleDollarSign, Wallet } from 'lucide-react';
 import { fetchApi } from '../../services/api';
+import ModernDropdown from '../ui/ModernDropdown';
 import { useAuth } from '../../store/useAuth';
 
 const ICON_OPTIONS = [
@@ -144,16 +145,17 @@ export default function AccountModal({ isOpen, onClose, onRefresh, initialData }
 
             <div>
               <label className="text-sm text-slate-400 block mb-2">Jenis Rekening</label>
-              <select 
+              <ModernDropdown
                 value={accountType}
-                onChange={(e) => setAccountType(e.target.value)}
-                className="w-full bg-surface-light border border-black/5 dark:border-white/5 rounded-xl py-3 px-4 text-sm text-[var(--color-text-foreground)] focus:outline-none focus:border-[var(--color-stabilo)] transition-all appearance-none"
-              >
-                <option value="Bank">Bank</option>
-                <option value="E-Wallet">E-Wallet</option>
-                <option value="Cash">Cash / Tunai</option>
-                <option value="Investment">Investasi</option>
-              </select>
+                onChange={setAccountType}
+                options={[
+                  { value: 'Bank', label: 'Bank' },
+                  { value: 'E-Wallet', label: 'E-Wallet' },
+                  { value: 'Cash', label: 'Cash / Tunai' },
+                  { value: 'Investment', label: 'Investasi' }
+                ]}
+                buttonClassName="!py-3 !h-auto !bg-surface-light border-black/5 dark:border-white/5"
+              />
             </div>
 
             <div>

@@ -130,6 +130,21 @@ function handleMockApi(action: string, payload: any = {}) {
       } else if (action === 'CREATE_TRANSACTION') {
         const newTx = { ...payload, id: generateId() };
         mockTransactions.push(newTx);
+        
+        // Update Account Balances
+        if (payload.tx_type === 'Transfer') {
+          const srcAcc = mockAccounts.find(a => a.id === payload.account_src_id);
+          const dstAcc = mockAccounts.find(a => a.id === payload.account_dst_id);
+          if (srcAcc) srcAcc.initial_balance = Number(srcAcc.initial_balance) - payload.amount;
+          if (dstAcc) dstAcc.initial_balance = Number(dstAcc.initial_balance) + payload.amount;
+        } else if (payload.tx_type === 'Expense') {
+          const srcAcc = mockAccounts.find(a => a.id === payload.account_src_id);
+          if (srcAcc) srcAcc.initial_balance = Number(srcAcc.initial_balance) - payload.amount;
+        } else if (payload.tx_type === 'Income') {
+          const srcAcc = mockAccounts.find(a => a.id === payload.account_src_id);
+          if (srcAcc) srcAcc.initial_balance = Number(srcAcc.initial_balance) + payload.amount;
+        }
+
         resolve({ status: 'success', message: 'Success', data: newTx });
       } else if (action === 'UPDATE_TRANSACTION') {
         mockTransactions = mockTransactions.map(t => t.id === payload.id ? { ...t, ...payload } : t);

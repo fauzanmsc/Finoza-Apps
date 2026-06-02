@@ -16,14 +16,26 @@ import {
   Edit2,
   Trash2,
   X,
-  Loader2
+  Loader2,
+  WalletCards,
+  DollarSign,
+  TrendingUp,
+  PiggyBank,
+  Gift,
+  Building,
+  Plane,
+  Scissors,
+  Landmark,
+  CreditCard,
+  Receipt,
+  Coins
 } from 'lucide-react';
 import { fetchApi } from '../services/api';
 import { useAuth } from '../store/useAuth';
 import EmptyState from '../components/ui/EmptyState';
 import ConfirmModal from '../components/ui/ConfirmModal';
 
-const ICON_MAP: Record<string, any> = {
+export const ICON_MAP: Record<string, any> = {
   'pizza': Pizza,
   'car': Car,
   'briefcase': Briefcase,
@@ -36,7 +48,22 @@ const ICON_MAP: Record<string, any> = {
   'heart': Heart,
   'smile': Smile,
   'tags': Tags,
+  'wallet-cards': WalletCards,
+  'dollar-sign': DollarSign,
+  'trending-up': TrendingUp,
+  'piggy-bank': PiggyBank,
+  'gift': Gift,
+  'building': Building,
+  'plane': Plane,
+  'scissors': Scissors,
+  'landmark': Landmark,
+  'credit-card': CreditCard,
+  'receipt': Receipt,
+  'coins': Coins
 };
+
+const EXPENSE_ICONS = ['pizza', 'car', 'shopping-bag', 'coffee', 'smartphone', 'monitor', 'home', 'heart', 'tags', 'gift', 'plane', 'scissors'];
+const INCOME_ICONS = ['briefcase', 'arrow-down-left', 'smile', 'wallet-cards', 'dollar-sign', 'trending-up', 'piggy-bank', 'building', 'landmark', 'credit-card', 'receipt', 'coins'];
 
 export default function Categories() {
   const [categories, setCategories] = useState<any[]>([]);
@@ -111,7 +138,10 @@ export default function Categories() {
     
     const payload = {
       id: editingCat?.id,
-      ...formData
+      ...formData,
+      type: formData.category_type,
+      icon: formData.icon_name,
+      color: formData.color_hex
     };
 
     const action = editingCat ? 'UPDATE_CATEGORY' : 'CREATE_CATEGORY';
@@ -223,45 +253,69 @@ export default function Categories() {
               <div>
                 <label className="text-sm text-slate-400 block mb-2 font-medium">Tipe Transaksi</label>
                 <div className="flex p-1 bg-surface-light rounded-xl">
-                  {['Expense', 'Income', 'Transfer'].map((type) => (
-                    <button
-                      key={type}
-                      type="button"
-                      onClick={() => setFormData({...formData, category_type: type as any})}
-                      className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all ${formData.category_type === type ? 'bg-[var(--color-stabilo)] text-black shadow-md' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-foreground)]'}`}
-                    >
-                      {type === 'Expense' ? 'Pengeluaran' : type === 'Income' ? 'Pemasukan' : 'Transfer'}
-                    </button>
-                  ))}
+                  {['Expense', 'Income'].map((type) => {
+                    const isActive = formData.category_type === type;
+                    const activeClass = type === 'Expense' 
+                      ? 'bg-[#ef4444] text-white shadow-md shadow-[#ef4444]/20' 
+                      : 'bg-[#10b981] text-white shadow-md shadow-[#10b981]/20';
+                    
+                    return (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => {
+                          const newType = type as any;
+                          const newIcons = newType === 'Expense' ? EXPENSE_ICONS : INCOME_ICONS;
+                          setFormData({
+                            ...formData, 
+                            category_type: newType,
+                            icon_name: newIcons.includes(formData.icon_name) ? formData.icon_name : newIcons[0]
+                          });
+                        }}
+                        className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all ${isActive ? activeClass : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-foreground)]'}`}
+                      >
+                        {type === 'Expense' ? 'Pengeluaran' : 'Pemasukan'}
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
 
               <div>
                 <label className="text-sm text-slate-400 block mb-2 font-medium">Warna</label>
-                <div className="flex flex-wrap gap-3">
+                <div className="grid grid-cols-7 gap-2 sm:gap-3 w-full">
                   {['#F43F5E', '#EC4899', '#D946EF', '#8B5CF6', '#6366F1', '#3B82F6', '#0EA5E9', '#10B981', '#22C55E', '#EAB308', '#F97316', '#EF4444', '#94A3B8'].map(color => (
                     <button
                       key={color}
                       type="button"
                       onClick={() => setFormData({...formData, color_hex: color})}
-                      className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${formData.color_hex === color ? 'ring-2 ring-white ring-offset-2 ring-offset-surface scale-110' : 'hover:scale-110'}`}
+                      className={`w-full aspect-square max-w-[40px] justify-self-center rounded-full flex items-center justify-center transition-all ${formData.color_hex?.toUpperCase() === color ? 'ring-2 ring-white ring-offset-2 ring-offset-surface scale-110' : 'hover:scale-110'}`}
                       style={{ backgroundColor: color }}
                     />
                   ))}
+                  <label className="w-full aspect-square max-w-[40px] justify-self-center rounded-full overflow-hidden cursor-pointer ring-1 ring-white/20 hover:scale-110 transition-transform relative flex items-center justify-center bg-[conic-gradient(from_90deg,red,yellow,lime,aqua,blue,magenta,red)]">
+                    <input 
+                      type="color" 
+                      value={formData.color_hex || '#000000'} 
+                      onChange={(e) => setFormData({...formData, color_hex: e.target.value})}
+                      className="absolute opacity-0 w-full h-full cursor-pointer"
+                    />
+                  </label>
                 </div>
               </div>
 
               <div>
                 <label className="text-sm text-slate-400 block mb-2 font-medium">Ikon</label>
                 <div className="grid grid-cols-6 gap-2">
-                  {Object.keys(ICON_MAP).map(iconName => {
+                  {(formData.category_type === 'Expense' ? EXPENSE_ICONS : INCOME_ICONS).map(iconName => {
                     const IconComp = ICON_MAP[iconName];
+                    if (!IconComp) return null;
                     return (
                       <button
                         key={iconName}
                         type="button"
                         onClick={() => setFormData({...formData, icon_name: iconName})}
-                        className={`aspect-square rounded-xl flex items-center justify-center transition-all ${formData.icon_name === iconName ? 'bg-[var(--color-stabilo)] text-black shadow-md scale-105' : 'bg-surface-light text-[var(--color-text-muted)] hover:bg-black/10 dark:hover:bg-white/10 hover:text-[var(--color-text-foreground)]'}`}
+                        className={`aspect-square rounded-xl flex items-center justify-center transition-all ${formData.icon_name === iconName ? (formData.category_type === 'Expense' ? 'bg-[#ef4444] text-white shadow-md scale-105' : 'bg-[#10b981] text-white shadow-md scale-105') : 'bg-surface-light text-[var(--color-text-muted)] hover:bg-black/10 dark:hover:bg-white/10 hover:text-[var(--color-text-foreground)]'}`}
                       >
                         <IconComp className="w-5 h-5" />
                       </button>

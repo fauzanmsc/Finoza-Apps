@@ -28,7 +28,7 @@ export default function CalendarView({ month, year, dailyData, onNextMonth, onPr
   const weekDays = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
 
   return (
-    <div className="glass rounded-2xl p-4 md:p-6 mb-6 overflow-hidden max-w-4xl mx-auto w-full shadow-xl">
+    <div className="glass rounded-2xl p-4 md:p-6 mb-6 w-full shadow-xl relative z-10">
       <div className="flex items-center justify-between mb-6">
         <button onClick={onPrevMonth} className="p-2 hover:bg-white/10 rounded-full transition-colors">
           <ChevronLeft className="w-6 h-6" />
@@ -50,7 +50,7 @@ export default function CalendarView({ month, year, dailyData, onNextMonth, onPr
       <div className="grid grid-cols-7 gap-1 md:gap-2">
         {days.map((day, idx) => {
           if (day === null) {
-            return <div key={idx} className="aspect-square rounded-xl bg-black/10 dark:bg-white/5 opacity-50" />;
+            return <div key={idx} className="h-16 md:h-20 rounded-xl bg-black/10 dark:bg-white/5 opacity-50" />;
           }
 
           const data = dailyData[day];
@@ -77,39 +77,39 @@ export default function CalendarView({ month, year, dailyData, onNextMonth, onPr
 
           // Modern Tooltip
           const tooltipContent = data && (data.income > 0 || data.expense > 0) ? (
-            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-[220px] bg-[#1a1f2e]/95 backdrop-blur-xl border border-white/10 p-4 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.6)] opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-[100] scale-95 group-hover:scale-100 origin-bottom">
-              <p className="text-sm text-white mb-3 font-extrabold flex items-center gap-2 border-b border-white/10 pb-2">
+            <div className="absolute bottom-[calc(100%+6px)] left-1/2 -translate-x-1/2 mb-1 w-[180px] md:w-[200px] bg-[#1a1f2e]/95 backdrop-blur-xl border border-white/10 p-3 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.6)] opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-[100] scale-95 group-hover:scale-100 origin-bottom">
+              <p className="text-[11px] md:text-xs text-white mb-2 font-extrabold flex items-center gap-1.5 border-b border-white/10 pb-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-stabilo)] animate-pulse" />
                 {day} {monthNames[month - 1]} {year}
               </p>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {data.income > 0 && (
-                  <div className="flex justify-between items-center text-xs">
+                  <div className="flex justify-between items-center text-[10px] md:text-[11px]">
                     <span className="text-slate-400 font-medium">Pemasukan</span>
                     <span className="text-positive font-bold">+{formatRp(data.income)}</span>
                   </div>
                 )}
                 {data.expense > 0 && (
-                  <div className="flex justify-between items-center text-xs">
+                  <div className="flex justify-between items-center text-[10px] md:text-[11px]">
                     <span className="text-slate-400 font-medium">Pengeluaran</span>
                     <span className="text-negative font-bold">-{formatRp(data.expense)}</span>
                   </div>
                 )}
               </div>
-              <div className="mt-3 pt-2 border-t border-white/10 flex justify-between items-center">
-                <span className="text-xs font-bold text-white">Net</span>
-                <span className={`text-sm font-black ${computedNet > 0 ? 'text-positive' : computedNet < 0 ? 'text-negative' : 'text-white'}`}>
+              <div className="mt-2 pt-2 border-t border-white/10 flex justify-between items-center">
+                <span className="text-[10px] md:text-[11px] font-bold text-white">Net</span>
+                <span className={`text-[11px] md:text-xs font-black ${computedNet > 0 ? 'text-positive' : computedNet < 0 ? 'text-negative' : 'text-white'}`}>
                   {computedNet > 0 ? '+' : ''}{formatRp(computedNet)}
                 </span>
               </div>
               
               {/* Tooltip Arrow */}
-              <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-[#1a1f2e]/95" />
+              <div className="absolute top-full left-1/2 -translate-x-1/2 border-[5px] border-transparent border-t-[#1a1f2e]/95" />
             </div>
           ) : null;
 
           return (
-            <div key={idx} className={`relative group aspect-square rounded-2xl flex flex-col items-center justify-center p-1 md:p-2 transition-all duration-300 hover:scale-[1.03] hover:z-10 cursor-pointer ${bgColor}`}>
+            <div key={idx} className={`relative group h-16 md:h-20 rounded-2xl flex flex-col items-center justify-center p-1 md:p-2 transition-all duration-300 hover:scale-[1.03] hover:z-50 cursor-pointer ${bgColor}`}>
               <span className={`text-sm md:text-base ${textColor}`}>{day}</span>
               {label && (
                 <span className={`text-[9px] md:text-[10px] font-bold mt-1 truncate w-full text-center px-1 hidden md:block opacity-90 ${textColor}`}>

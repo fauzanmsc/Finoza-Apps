@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MoreHorizontal, ArrowUpRight, ArrowDownRight, Wallet, Loader2, User, Eye, EyeOff, Plus, Landmark, Pizza, Car, Briefcase, ArrowDownLeft, ShoppingBag, Coffee, Smartphone, Monitor, Home, Heart, Smile, Tags } from 'lucide-react';
+import { MoreHorizontal, ArrowUpRight, ArrowDownRight, Wallet, Loader2, User, Eye, EyeOff, Plus, Landmark, Pizza, Car, Briefcase, ArrowDownLeft, ShoppingBag, Coffee, Smartphone, Monitor, Home, Heart, Smile, Tags, Crown } from 'lucide-react';
 
 const ICON_MAP: Record<string, any> = {
   'pizza': Pizza,
@@ -20,7 +20,8 @@ import TransactionModal from '../components/transactions/TransactionModal';
 import { fetchApi } from '../services/api';
 import { useAuth } from '../store/useAuth';
 import OnboardingModal from '../components/ui/OnboardingModal';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import ModernDropdown from '../components/ui/ModernDropdown';
 
 const formatRp = (num: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(num);
 const formatShort = (num: number) => {
@@ -294,28 +295,54 @@ export default function Dashboard() {
   };
 
   const getFilteredCashflow = () => {
-    if (!allTransactions || allTransactions.length === 0) return data?.cashflow || [];
-
     const now = new Date();
     let startDate = new Date();
     let endDate = new Date();
     let formatFullDate = (d: Date) => d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
     let formatLabel = (d: Date) => d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
-    let groupBy = (d: Date) => d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
+    
+    let datesToGenerate: Date[] = [];
 
     if (periodFilter === 'weekly') {
       startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6 + (chartMonthOffset * 7), 0, 0, 0);
       endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (chartMonthOffset * 7), 23, 59, 59);
+      
+      for (let i = 0; i <= 6; i++) {
+         const d = new Date(startDate);
+         d.setDate(d.getDate() + i);
+         datesToGenerate.push(d);
+      }
     } else if (periodFilter === 'monthly') {
       startDate = new Date(now.getFullYear(), now.getMonth() + chartMonthOffset, 1);
       endDate = new Date(now.getFullYear(), now.getMonth() + chartMonthOffset + 1, 0, 23, 59, 59);
+      
+      const daysInMonth = endDate.getDate();
+      for (let i = 1; i <= daysInMonth; i++) {
+         const d = new Date(startDate);
+         d.setDate(i);
+         datesToGenerate.push(d);
+      }
     } else if (periodFilter === 'yearly') {
       startDate = new Date(now.getFullYear() + chartMonthOffset, 0, 1);
       endDate = new Date(now.getFullYear() + chartMonthOffset, 11, 31, 23, 59, 59);
       formatLabel = (d: Date) => d.toLocaleDateString('id-ID', { month: 'short' });
       formatFullDate = (d: Date) => d.toLocaleDateString('id-ID', { month: 'short', year: 'numeric' });
-      groupBy = (d: Date) => d.getFullYear() + '-' + d.getMonth();
+      
+      for (let i = 0; i < 12; i++) {
+         const d = new Date(startDate.getFullYear(), i, 1);
+         datesToGenerate.push(d);
+      }
     }
+
+    let result = datesToGenerate.map(d => ({
+      name: formatLabel(d),
+      fullDate: formatFullDate(d),
+      income: 0,
+      expense: 0,
+      date: d
+    }));
+
+    if (!allTransactions || allTransactions.length === 0) return result;
 
     const filtered = allTransactions.filter(tx => {
       const d = parseTxDate(tx.tx_date);
@@ -323,17 +350,21 @@ export default function Dashboard() {
       return d >= startDate && d <= endDate;
     });
 
-    const grouped = filtered.reduce((acc, tx) => {
+    filtered.forEach(tx => {
       const d = parseTxDate(tx.tx_date)!;
-      const key = groupBy(d);
-      if (!acc[key]) acc[key] = { name: formatLabel(d), fullDate: formatFullDate(d), income: 0, expense: 0, date: d };
-      if (tx.tx_type === 'Income') acc[key].income += Number(tx.amount || 0);
-      if (tx.tx_type === 'Expense') acc[key].expense += Number(tx.amount || 0);
-      return acc;
-    }, {} as Record<string, any>);
+      let matchIndex = -1;
+      if (periodFilter === 'yearly') {
+         matchIndex = result.findIndex(r => r.date.getMonth() === d.getMonth() && r.date.getFullYear() === d.getFullYear());
+      } else {
+         matchIndex = result.findIndex(r => r.date.getDate() === d.getDate() && r.date.getMonth() === d.getMonth() && r.date.getFullYear() === d.getFullYear());
+      }
 
-    let result = Object.values(grouped).sort((a: any, b: any) => a.date.getTime() - b.date.getTime());
-    if (result.length === 0) return data?.cashflow || [];
+      if (matchIndex !== -1) {
+         if (tx.tx_type === 'Income') result[matchIndex].income += Number(tx.amount || 0);
+         if (tx.tx_type === 'Expense') result[matchIndex].expense += Number(tx.amount || 0);
+      }
+    });
+
     return result;
   };
 
@@ -491,15 +522,17 @@ export default function Dashboard() {
           <div className="flex flex-col gap-3 mb-3">
             <h3 className="text-xs font-medium text-[var(--color-text-foreground)]">Arus Kas Masuk/Keluar</h3>
             <div className="flex items-center gap-2">
-              <select
+              <ModernDropdown
                 value={periodFilter}
-                onChange={e => { setPeriodFilter(e.target.value); setChartMonthOffset(0); }}
-                className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 text-[10px] rounded-lg px-2 text-[var(--color-text-foreground)] focus:outline-none cursor-pointer h-[28px] flex-shrink-0"
-              >
-                <option value="weekly">Mingguan</option>
-                <option value="monthly">Bulanan</option>
-                <option value="yearly">Tahunan</option>
-              </select>
+                onChange={(val) => { setPeriodFilter(val); setChartMonthOffset(0); }}
+                options={[
+                  { value: 'weekly', label: 'Mingguan' },
+                  { value: 'monthly', label: 'Bulanan' },
+                  { value: 'yearly', label: 'Tahunan' }
+                ]}
+                className="w-28 flex-shrink-0"
+                buttonClassName="!h-[28px] !text-[10px] !px-2"
+              />
               <div className="flex items-center bg-black/5 dark:bg-white/5 rounded-lg border border-black/5 dark:border-white/10 h-[28px] flex-1 max-w-[200px]">
                 <button onClick={() => setChartMonthOffset(prev => prev - 1)} className="px-2.5 h-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors rounded-l-lg border-r border-black/5 dark:border-white/10 text-[var(--color-text-muted)] hover:text-[var(--color-text-foreground)] text-[10px] flex items-center justify-center">
                   &lt;
@@ -552,7 +585,7 @@ export default function Dashboard() {
               const pct = maxAmt > 0 ? (cat.amount / maxAmt) * 100 : 0;
               return (
                 <div key={i} className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 flex items-center justify-center flex-shrink-0" style={{ color: cat.color_hex }}>
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${cat.color_hex}15`, color: cat.color_hex }}>
                     {(() => {
                       const IconComp = ICON_MAP[cat.icon_name] || Tags;
                       return <IconComp className="w-4 h-4" style={{ color: cat.color_hex }} />;
@@ -819,15 +852,17 @@ export default function Dashboard() {
                   <div className="flex flex-wrap items-center gap-4">
                     <h3 className="font-medium text-[var(--color-text-foreground)]">Arus Kas Masuk/Keluar</h3>
                     <div className="flex items-center gap-2">
-                      <select
+                      <ModernDropdown
                         value={periodFilter}
-                        onChange={e => { setPeriodFilter(e.target.value); setChartMonthOffset(0); }}
-                        className="bg-black/10 dark:bg-white/5 border border-black/10 dark:border-white/10 text-xs rounded-lg px-3 focus:outline-none text-[var(--color-text-foreground)] hover:bg-white/10 transition-colors h-[32px] cursor-pointer"
-                      >
-                        <option value="weekly">Mingguan</option>
-                        <option value="monthly">Bulanan</option>
-                        <option value="yearly">Tahunan</option>
-                      </select>
+                        onChange={(val) => { setPeriodFilter(val); setChartMonthOffset(0); }}
+                        options={[
+                          { value: 'weekly', label: 'Mingguan' },
+                          { value: 'monthly', label: 'Bulanan' },
+                          { value: 'yearly', label: 'Tahunan' }
+                        ]}
+                        className="w-32"
+                        buttonClassName="!h-[32px] !text-xs !px-3"
+                      />
                       <div className="flex items-center bg-black/5 dark:bg-white/5 rounded-lg border border-black/5 dark:border-white/10 h-[32px]">
                         <button onClick={() => setChartMonthOffset(prev => prev - 1)} className="px-3 h-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors rounded-l-lg border-r border-black/5 dark:border-white/10 text-[var(--color-text-muted)] hover:text-[var(--color-text-foreground)] flex items-center justify-center">
                           &lt;
@@ -877,8 +912,10 @@ export default function Dashboard() {
             {/* Top Pengeluaran */}
             <div className="lg:col-span-4 flex flex-col">
               <div className="glass hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/20 transition-all duration-300 rounded-2xl p-6 flex-1 flex flex-col">
-                <div className="flex items-center gap-2 mb-6">
-                  <span className="text-xl">👑</span>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 bg-[var(--color-stabilo)]/10 text-[var(--color-stabilo)] rounded-xl border border-[var(--color-stabilo)]/20 shadow-[0_0_15px_rgba(204,255,0,0.1)]">
+                    <Crown className="w-5 h-5" />
+                  </div>
                   <h3 className="font-medium text-[var(--color-text-foreground)]">Top Pengeluaran</h3>
                 </div>
                 <div className="space-y-5 flex-1">
@@ -888,7 +925,7 @@ export default function Dashboard() {
                     return (
                       <div key={i} className="group">
                         <div className="flex items-center gap-3 mb-2">
-                          <div className="w-8 h-8 rounded-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 flex items-center justify-center" style={{ color: cat.color_hex }}>
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${cat.color_hex}15`, color: cat.color_hex }}>
                             {(() => {
                               const IconComp = ICON_MAP[cat.icon_name] || Tags;
                               return <IconComp className="w-4 h-4" style={{ color: cat.color_hex }} />;

@@ -44,34 +44,8 @@ export default function Reports() {
     }
   };
 
-  const handleExportCSV = () => {
-    if (!data || !data.daily_data) {
-      setToastMsg('Tidak ada data untuk di-export pada bulan ini.');
-      setTimeout(() => setToastMsg(''), 3000);
-      return;
-    }
-    
-    let csvContent = "data:text/csv;charset=utf-8,Tanggal,Tipe,Kategori/Catatan,Jumlah\n";
-    
-    Object.keys(data.daily_data).forEach(day => {
-       const daily = data.daily_data[day];
-       daily.transactions.forEach((tx: any) => {
-          const note = (tx.note || tx.category_id || '-').replace(/,/g, ' '); // avoid csv break
-          csvContent += `${tx.tx_date},${tx.tx_type},${note},${tx.amount}\n`;
-       });
-    });
-
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `laporan_transaksi_${currentYear}_${currentMonth}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   return (
-    <div className="p-4 lg:p-8 w-full max-w-7xl mx-auto space-y-6 md:space-y-8 antialiased">
+    <div id="report-capture-area" className="p-4 lg:p-8 w-full max-w-7xl mx-auto space-y-6 md:space-y-8 antialiased">
       {/* Toast notification */}
       {toastMsg && (
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[200] animate-[popIn_0.4s_cubic-bezier(0.16,1,0.3,1)]">
@@ -89,9 +63,6 @@ export default function Reports() {
       )}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl md:text-2xl font-bold">Laporan Periode</h2>
-        <button onClick={handleExportCSV} className="bg-positive hover:bg-[#15c57b] text-black px-3 py-1.5 md:px-4 md:py-2 rounded-xl flex items-center gap-2 text-xs md:text-sm font-bold transition-all shadow-[0_0_15px_rgba(30,228,148,0.2)]">
-          <Download className="w-4 h-4" /> <span className="hidden md:inline">Export CSV</span>
-        </button>
       </div>
 
       {isLoading ? (

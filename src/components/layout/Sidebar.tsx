@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import {
   LayoutDashboard,
@@ -32,6 +32,8 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ onNavigate }: SidebarProps) {
+  const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout } = useAuth();
   const { theme, toggleTheme, isSidebarCompact, toggleSidebarCompact } = useTheme();
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -43,7 +45,6 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
   }, [user?.profile_picture_url]);
 
   const [transactionModalType, setTransactionModalType] = useState<string | null>(null);
-  const navigate = useNavigate();
   const [imgError, setImgError] = useState(false);
 
   const handleLogoutConfirm = () => {
@@ -125,14 +126,16 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
             }
 
             return (
-              <NavLink
+              <button
                 key={item.path}
-                to={item.path}
-                onClick={onNavigate}
-                className={({ isActive }) => cn(
-                  "flex items-center gap-3 py-3.5 rounded-2xl transition-all duration-300 text-[15px]",
+                onClick={() => {
+                  navigate(item.path);
+                  if (onNavigate) onNavigate();
+                }}
+                className={cn(
+                  "w-full flex items-center justify-start gap-3 py-3.5 rounded-2xl transition-all duration-300 text-[15px] border-none outline-none cursor-pointer",
                   isSidebarCompact ? "justify-center px-0" : "px-4",
-                  isActive
+                  location.pathname === item.path
                     ? "bg-[var(--color-stabilo)] text-[#0B101E] font-extrabold shadow-lg shadow-[var(--color-stabilo)]/20"
                     : "text-[var(--color-text-muted)] font-medium hover:text-[var(--color-text-foreground)] hover:bg-black/5 dark:hover:bg-white/5"
                 )}
@@ -140,7 +143,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
               >
                 <item.icon className="w-[22px] h-[22px] flex-shrink-0 transition-all duration-300" />
                 {!isSidebarCompact && <span>{item.label}</span>}
-              </NavLink>
+              </button>
             );
           })}
         </nav>

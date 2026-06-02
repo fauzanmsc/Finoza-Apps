@@ -159,16 +159,38 @@ function handleGenericUpdate(sheetName, idValue, payload, authToken) {
   if (data.length <= 1) return createErrorResponse(404, "Record not found");
   
   const headers = data[0];
-  const idColIndex = headers.indexOf('id') !== -1 ? headers.indexOf('id') : headers.findIndex(h => h.endsWith('_id'));
+  // Find ID column: first check for 'id', then find primary key column (ends with _id but NOT user_id or category_id)
+  let idColIndex = headers.indexOf('id');
+  if (idColIndex === -1) {
+    idColIndex = headers.findIndex(h => String(h).endsWith('_id') && h !== 'user_id' && h !== 'category_id' && h !== 'account_src_id' && h !== 'account_dst_id');
+  }
   const userIdColIndex = headers.indexOf("user_id");
   
   if (idColIndex === -1) return createErrorResponse(500, "ID column not found");
+
+  // Field name mapping: frontend field -> possible database column names
+  const fieldAliases = {
+    'name': ['name', 'person_name', 'budget_name', 'account_name'],
+    'type': ['type', 'debt_type'],
+    'due': ['due', 'due_date'],
+    'limit': ['limit', 'amount_limit', 'amount'],
+    'person_name': ['person_name', 'name'],
+    'debt_type': ['debt_type', 'type'],
+    'due_date': ['due_date', 'due']
+  };
 
   for (let i = 1; i < data.length; i++) {
     if (String(data[i][idColIndex]) === String(idValue) && String(data[i][userIdColIndex]) === String(userId)) {
       let rowData = data[i];
       for (let key in payload) {
         let colIndex = headers.indexOf(key);
+        // If direct match not found, try aliases
+        if (colIndex === -1 && fieldAliases[key]) {
+          for (let alias of fieldAliases[key]) {
+            colIndex = headers.indexOf(alias);
+            if (colIndex !== -1) break;
+          }
+        }
         if (colIndex !== -1) {
           rowData[colIndex] = payload[key];
         }
@@ -188,7 +210,10 @@ function handleGenericDelete(sheetName, idValue, authToken) {
   if (data.length <= 1) return createErrorResponse(404, "Record not found");
 
   const headers = data[0];
-  const idColIndex = headers.indexOf('id') !== -1 ? headers.indexOf('id') : headers.findIndex(h => h.endsWith('_id'));
+  let idColIndex = headers.indexOf('id');
+  if (idColIndex === -1) {
+    idColIndex = headers.findIndex(h => String(h).endsWith('_id') && h !== 'user_id' && h !== 'category_id' && h !== 'account_src_id' && h !== 'account_dst_id');
+  }
   const userIdColIndex = headers.indexOf("user_id");
 
   for (let i = 1; i < data.length; i++) {
@@ -462,7 +487,19 @@ function handleGetDebts(authToken) {
   const userId = getUserIdFromToken(authToken);
   if (!userId) return createErrorResponse(401, "Unauthorized");
   const sheet = getSheet("tb_debts");
-  return createSuccessResponse(200, "Debts retrieved", mapIdField(getRowsData(sheet).filter(r => String(r.user_id) === String(userId))));
+  const rawDebts = mapIdField(getRowsData(sheet).filter(r => String(r.user_id) === String(userId)));
+  
+  // Normalize field names: database columns -> frontend expected fields
+  const debts = rawDebts.map(d => ({
+    ...d,
+    name: d.name || d.person_name || '',
+    type: d.type || d.debt_type || '',
+    due: d.due || d.due_date || '',
+    amount: Number(d.amount) || 0,
+    status: d.status || 'Active'
+  }));
+  
+  return createSuccessResponse(200, "Debts retrieved", debts);
 }
 
 function handleCreateDebt(authToken, payload) {
@@ -471,9 +508,23 @@ function handleCreateDebt(authToken, payload) {
   const sheet = getSheet("tb_debts");
   const newId = 'DBT-' + generateUUID().substring(0,8);
   const now = new Date().toISOString();
-  sheet.appendRow([
-    newId, userId, sanitizeInput(payload.type) || 'Saya Berhutang', sanitizeInput(payload.name) || '', payload.amount || 0, payload.due || now, 'Active', now
-  ]);
+  
+  const headers = sheet.getDataRange().getValues()[0];
+  const newRow = new Array(headers.length).fill('');
+  
+  headers.forEach((h, index) => {
+    const header = String(h).toLowerCase().trim();
+    if (header === 'id' || header === 'debt_id') newRow[index] = newId;
+    else if (header === 'user_id') newRow[index] = userId;
+    else if (header === 'type' || header === 'debt_type') newRow[index] = sanitizeInput(payload.type) || 'Hutang';
+    else if (header === 'name' || header === 'person_name') newRow[index] = sanitizeInput(payload.name) || '';
+    else if (header === 'amount') newRow[index] = payload.amount || 0;
+    else if (header === 'due' || header === 'due_date') newRow[index] = payload.due || now;
+    else if (header === 'status') newRow[index] = 'Active';
+    else if (header === 'created_at') newRow[index] = now;
+  });
+
+  sheet.appendRow(newRow);
   return createSuccessResponse(201, "Debt created", { ...payload, id: newId });
 }
 

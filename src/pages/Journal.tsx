@@ -1,7 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Calendar, Loader2, FileText, ArrowUpDown } from 'lucide-react';
+import { Calendar, Loader2, FileText, ArrowUpDown, Download } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import { fetchApi } from '../services/api';
 import { useAuth } from '../store/useAuth';
+import ModernDatePicker from '../components/ui/ModernDatePicker';
 
 export default function Journal() {
   const [txs, setTxs] = useState<any[]>([]);
@@ -62,6 +64,24 @@ export default function Journal() {
     return { totalDebit: debit, totalKredit: kredit };
   }, [filteredTxs]);
 
+  const handleExportExcel = () => {
+    const headers = ['Tanggal', 'Keterangan / Kategori', 'Rekening', 'Debit (Masuk)', 'Kredit (Keluar)'];
+    const rows = filteredTxs.map(tx => {
+      const date = tx.tx_date ? tx.tx_date.split('T')[0] : '-';
+      const catName = catMap[tx.category_id]?.name || tx.category_id || (tx.tx_type === 'Transfer' ? 'Transfer' : tx.tx_type);
+      const note = tx.note ? `${tx.note} - ${catName}` : catName;
+      const accName = accMap[tx.account_src_id]?.account_name || tx.account_src_id;
+      const debit = tx.tx_type === 'Income' ? Number(tx.amount || 0) : 0;
+      const kredit = tx.tx_type === 'Expense' ? Number(tx.amount || 0) : 0;
+      return [date, note, accName, debit, kredit];
+    });
+    
+    const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Jurnal Keuangan");
+    XLSX.writeFile(workbook, `Jurnal_Keuangan_${startDate}_${endDate}.xlsx`);
+  };
+
   const formatRp = (num: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(num);
 
   if (isLoading) {
@@ -76,43 +96,48 @@ export default function Journal() {
           <p className="text-[10px] lg:text-sm text-[var(--color-text-muted)]">Ringkasan transaksi dalam format debit dan kredit.</p>
         </div>
         
-        <div className="w-full lg:w-auto">
-          <div className="flex flex-col sm:flex-row items-center gap-2 bg-surface-light border border-black/5 dark:border-white/5 rounded-xl p-2 w-full">
-            <div className="relative w-full sm:w-auto">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" />
-              <input 
-                type="date" 
+        <div className="w-full lg:w-auto flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-2 bg-surface-light border border-black/5 dark:border-white/5 rounded-xl px-1.5 sm:px-2 h-10 sm:h-11 w-full sm:w-auto shadow-sm box-border">
+            <div className="relative flex-1 h-full flex items-center min-w-[120px]">
+              <ModernDatePicker 
                 value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="w-full sm:w-auto bg-transparent py-2 pl-9 pr-3 text-sm focus:outline-none text-[var(--color-text-foreground)]"
+                onChange={setStartDate}
+                placeholder="Tanggal Awal"
+                align="left"
               />
             </div>
-            <span className="hidden sm:block text-[var(--color-text-muted)]">-</span>
-            <div className="relative w-full sm:w-auto">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" />
-              <input 
-                type="date" 
+            <span className="text-[var(--color-text-muted)] text-xs sm:text-sm font-medium opacity-50">-</span>
+            <div className="relative flex-1 h-full flex items-center min-w-[120px]">
+              <ModernDatePicker 
                 value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="w-full sm:w-auto bg-transparent py-2 pl-9 pr-3 text-sm focus:outline-none text-[var(--color-text-foreground)]"
+                onChange={setEndDate}
+                placeholder="Tanggal Akhir"
+                align="right"
               />
             </div>
             <button
               onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
-              className="p-2 sm:ml-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors border border-black/10 dark:border-white/10"
+              className="p-1.5 sm:p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors border border-black/10 dark:border-white/10 flex-shrink-0 bg-white/50 dark:bg-black/20 shadow-sm relative z-10 my-auto"
               title="Urutkan Tanggal"
             >
-              <ArrowUpDown className="w-4 h-4 text-[var(--color-text-muted)]" />
+              <ArrowUpDown className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--color-text-muted)] hover:text-[var(--color-text-foreground)]" />
             </button>
           </div>
+          
+          <button 
+            onClick={handleExportExcel}
+            className="w-full sm:w-auto h-10 sm:h-11 bg-[var(--color-stabilo)] hover:bg-[#b3e600] text-black px-4 rounded-xl flex items-center justify-center gap-2 text-sm font-bold transition-all shadow-[0_0_15px_rgba(204,255,0,0.2)] box-border"
+          >
+            <Download className="w-4 h-4" /> Export Data
+          </button>
         </div>
       </div>
 
       <div className="glass rounded-2xl overflow-hidden border border-white/5 shadow-xl">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto max-h-[60vh] overflow-y-auto relative">
           <table className="w-full text-left text-sm whitespace-nowrap">
-            <thead>
-              <tr className="bg-surface-light/50 text-[var(--color-text-muted)] border-b border-white/5">
+            <thead className="sticky top-0 z-10 shadow-sm">
+              <tr className="bg-white dark:bg-[#1a1f2e] text-[var(--color-text-muted)] border-b border-black/10 dark:border-white/10">
                 <th className="px-4 py-3 lg:px-6 lg:py-4 font-semibold">Tanggal</th>
                 <th className="px-4 py-3 lg:px-6 lg:py-4 font-semibold">Keterangan / Kategori</th>
                 <th className="px-4 py-3 lg:px-6 lg:py-4 font-semibold">Rekening</th>
@@ -157,7 +182,7 @@ export default function Journal() {
               )}
             </tbody>
             {filteredTxs.length > 0 && (
-              <tfoot className="bg-surface-light border-t-2 border-[var(--color-stabilo)]/20">
+              <tfoot className="bg-slate-50 dark:bg-white/[0.02] border-t-2 border-slate-200 dark:border-white/10">
                 <tr>
                   <td colSpan={3} className="px-4 py-3 lg:px-6 lg:py-4 text-right font-bold text-[var(--color-text-foreground)]">
                     Total Periode Ini
