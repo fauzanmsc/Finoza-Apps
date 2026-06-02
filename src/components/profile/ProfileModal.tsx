@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, User, Upload, Loader2, Camera, Lock } from 'lucide-react';
 import { fetchApi } from '../../services/api';
 import { useAuth } from '../../store/useAuth';
@@ -94,8 +95,8 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
     setIsSubmitting(false);
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-6 sm:p-0">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 sm:p-0">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}></div>
       <div className="relative w-full max-w-md bg-surface border border-white/10 rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
         
@@ -185,6 +186,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
           </button>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -181,7 +181,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
           >
             {user?.profile_picture_url && !imgError && user.profile_picture_url !== 'null' ? (
               <img
-                src={`${user.profile_picture_url}${imgCacheBuster}`}
+                src={user.profile_picture_url}
                 alt="Profile"
                 onError={() => setImgError(true)}
                 className="w-10 h-10 rounded-full object-cover bg-slate-800 flex-shrink-0"

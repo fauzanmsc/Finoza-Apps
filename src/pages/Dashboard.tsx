@@ -430,7 +430,7 @@ export default function Dashboard() {
         <div className="flex items-center gap-3 mb-6">
           {user?.profile_picture_url && user.profile_picture_url !== 'null' && !imgError ? (
             <img
-              src={`${user.profile_picture_url}${imgCacheBuster ? (user.profile_picture_url.includes('?') ? imgCacheBuster.replace('?', '&') : imgCacheBuster) : ''}`}
+              src={user.profile_picture_url}
               alt="Profile"
               onError={() => setImgError(true)}
               className="w-12 h-12 rounded-full object-cover bg-slate-800 border-2 border-white dark:border-slate-800 flex-shrink-0"
@@ -722,7 +722,7 @@ export default function Dashboard() {
             <div className="flex items-center gap-4">
               {user?.profile_picture_url && user.profile_picture_url !== 'null' && !imgError ? (
                 <img
-                  src={`${user.profile_picture_url}${imgCacheBuster ? (user.profile_picture_url.includes('?') ? imgCacheBuster.replace('?', '&') : imgCacheBuster) : ''}`}
+                  src={user.profile_picture_url}
                   alt="Profile"
                   onError={() => setImgError(true)}
                   className="w-16 h-16 lg:w-[72px] lg:h-[72px] rounded-full object-cover bg-slate-800 border-[3px] border-white dark:border-slate-800 shadow-lg shadow-black/20"
@@ -825,9 +825,9 @@ export default function Dashboard() {
                   <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-4 bg-gradient-to-r from-[var(--color-glass-bg)] to-transparent z-10 lg:hidden" />
                   <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-4 bg-gradient-to-l from-[var(--color-glass-bg)] to-transparent z-10 lg:hidden" />
 
-                  <div className="h-full flex flex-row lg:flex-col gap-3 overflow-x-auto lg:overflow-x-hidden lg:overflow-y-auto scrollbar-hide pb-2 lg:pb-6 px-1 lg:px-0">
+                  <div className="h-full flex flex-row lg:flex-col gap-3 overflow-x-auto lg:overflow-x-hidden lg:overflow-y-auto scrollbar-hide pb-2 lg:pb-6 pt-1 lg:pt-2 px-2 lg:px-2 -mx-2 lg:-mx-2">
                     {data.accounts && data.accounts.length > 0 ? data.accounts.map((acc: any, i: number) => (
-                      <div key={i} className="rounded-2xl p-5 flex-shrink-0 flex flex-col justify-between shadow-[0_8px_32px_rgba(0,0,0,0.1)] hover:-translate-y-1.5 hover:shadow-[0_16px_40px_rgba(0,0,0,0.2)] hover:scale-[1.02] transition-all duration-300 cursor-pointer relative overflow-hidden text-white min-h-[120px] w-[160px] lg:w-auto" style={{ background: getBankColor(acc.account_name, acc.color_hex) }}>
+                      <div key={i} className="rounded-2xl p-5 flex-shrink-0 flex flex-col justify-between shadow-[0_8px_32px_rgba(0,0,0,0.1)] hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(0,0,0,0.2)] hover:scale-[1.02] transition-all duration-300 cursor-pointer relative overflow-hidden text-white min-h-[120px] w-[160px] lg:w-auto" style={{ background: getBankColor(acc.account_name, acc.color_hex) }}>
                         <div className="flex justify-between items-start z-10 relative mb-3">
                           <div>
                             <span className="font-semibold text-[15px] block">{acc.account_name}</span>
