@@ -428,9 +428,9 @@ export default function Dashboard() {
 
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          {user?.profile_picture_url && !imgError && user?.profile_picture_url !== 'null' ? (
+          {user?.profile_picture_url && user.profile_picture_url !== 'null' && !imgError ? (
             <img
-              src={`${user.profile_picture_url}${imgCacheBuster}`}
+              src={`${user.profile_picture_url}${imgCacheBuster ? (user.profile_picture_url.includes('?') ? imgCacheBuster.replace('?', '&') : imgCacheBuster) : ''}`}
               alt="Profile"
               onError={() => setImgError(true)}
               className="w-12 h-12 rounded-full object-cover bg-slate-800 border-2 border-white dark:border-slate-800 flex-shrink-0"
@@ -720,9 +720,9 @@ export default function Dashboard() {
         <div className="sticky top-0 z-50 w-full bg-[var(--color-background)]/90 backdrop-blur-md pt-4 lg:pt-4 px-4 lg:px-8">
           <div className="max-w-7xl mx-auto flex items-center justify-between pb-4 lg:pb-6">
             <div className="flex items-center gap-4">
-              {user?.profile_picture_url && !imgError && user.profile_picture_url !== 'null' ? (
+              {user?.profile_picture_url && user.profile_picture_url !== 'null' && !imgError ? (
                 <img
-                  src={`${user.profile_picture_url}${imgCacheBuster}`}
+                  src={`${user.profile_picture_url}${imgCacheBuster ? (user.profile_picture_url.includes('?') ? imgCacheBuster.replace('?', '&') : imgCacheBuster) : ''}`}
                   alt="Profile"
                   onError={() => setImgError(true)}
                   className="w-16 h-16 lg:w-[72px] lg:h-[72px] rounded-full object-cover bg-slate-800 border-[3px] border-white dark:border-slate-800 shadow-lg shadow-black/20"
