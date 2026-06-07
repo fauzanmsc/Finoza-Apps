@@ -62,6 +62,7 @@ export default function ModernDatePicker({ value, onChange, className, placehold
   return (
     <div className={cn("relative w-full h-full", className)} ref={containerRef}>
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="w-full h-full flex items-center bg-transparent focus:outline-none text-left pl-7 sm:pl-9 pr-2"
       >
@@ -77,13 +78,13 @@ export default function ModernDatePicker({ value, onChange, className, placehold
           align === 'right' ? "right-0" : "left-0"
         )}>
           <div className="flex items-center justify-between mb-3">
-            <button onClick={handlePrevMonth} className="p-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+            <button type="button" onClick={handlePrevMonth} className="p-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
               <ChevronLeft className="w-3.5 h-3.5 text-slate-400" />
             </button>
             <span className="text-xs font-bold text-[var(--color-text-foreground)]">
               {monthNames[currentMonth]} {currentYear}
             </span>
-            <button onClick={handleNextMonth} className="p-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+            <button type="button" onClick={handleNextMonth} className="p-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
               <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
             </button>
           </div>
@@ -108,6 +109,7 @@ export default function ModernDatePicker({ value, onChange, className, placehold
               return (
                 <button
                   key={day}
+                  type="button"
                   onClick={() => handleDateClick(day)}
                   className={cn(
                     "h-7 flex items-center justify-center text-[10px] sm:text-[11px] rounded-lg font-medium transition-all duration-200",

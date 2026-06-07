@@ -85,7 +85,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 space-y-1 overflow-y-auto scrollbar-hide">
+        <nav className="flex-1 space-y-1 overflow-y-auto scrollbar-hide px-4 -mx-4">
           {navItems.map((item, idx) => {
             if (item.isDropdown) {
               return (

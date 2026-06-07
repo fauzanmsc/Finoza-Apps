@@ -97,7 +97,7 @@ export default function Accounts() {
 
       {/* Total Assets Summary */}
       <div className="glass rounded-2xl p-4 lg:p-6 border border-black/5 dark:border-white/10 relative overflow-hidden group">
-        <div className="absolute right-0 top-0 opacity-10 pointer-events-none transition-transform group-hover:scale-110">
+        <div className="absolute right-0 top-0 opacity-5 pointer-events-none transition-transform group-hover:scale-110">
           <WalletCards className="w-20 lg:w-32 h-20 lg:h-32 -mr-4 lg:-mr-6 -mt-4 lg:-mt-6" />
         </div>
         <div className="flex items-center justify-between mb-1">
@@ -110,7 +110,7 @@ export default function Accounts() {
             {showNominal ? <EyeOff className="w-4 h-4 lg:w-5 lg:h-5" /> : <Eye className="w-4 h-4 lg:w-5 lg:h-5" />}
           </button>
         </div>
-        <p className={`text-2xl lg:text-5xl font-bold tracking-tight text-slate-900 dark:text-[var(--color-stabilo)] drop-shadow-sm dark:drop-shadow-md transition-all ${!showNominal && 'filter blur-[8px] opacity-70 select-none'}`}>
+        <p className="text-2xl lg:text-5xl font-bold tracking-tight text-slate-900 dark:text-[var(--color-stabilo)] drop-shadow-sm dark:drop-shadow-md transition-all">
           {showNominal ? formatRp(accounts.reduce((acc, curr) => acc + Number(curr.initial_balance), 0)) : 'Rp ••••••••'}
         </p>
       </div>
@@ -161,7 +161,7 @@ export default function Accounts() {
                   {/* Account Balance */}
                   <div className="mt-4 lg:mt-6">
                     <p className="text-[10px] lg:text-xs text-slate-400 mb-1 lg:mb-1.5 font-medium">Saldo Saat Ini</p>
-                    <p className={`text-lg lg:text-2xl font-bold tracking-tight text-[var(--color-text-foreground)] drop-shadow-sm transition-all ${!showNominal && 'filter blur-[5px] opacity-70 select-none'}`}>
+                    <p className="text-lg lg:text-2xl font-bold tracking-tight text-[var(--color-text-foreground)] drop-shadow-sm transition-all">
                       {showNominal ? formatRp(acc.initial_balance) : 'Rp ••••••••'}
                     </p>
                   </div>

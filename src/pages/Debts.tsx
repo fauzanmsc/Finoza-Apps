@@ -196,7 +196,7 @@ export default function Debts() {
                 {showNominal ? <Eye className="w-4 h-4 md:w-5 md:h-5" /> : <EyeOff className="w-4 h-4 md:w-5 md:h-5" />}
               </button>
             </div>
-            <p className={`text-3xl lg:text-4xl font-black text-negative tracking-tight mt-1 ${!showNominal && 'filter blur-[8px] opacity-70'}`}>
+            <p className="text-3xl lg:text-4xl font-black text-negative tracking-tight mt-1">
               {showNominal ? formatRp(totalHutang) : 'Rp ••••••••'}
             </p>
           </div>
@@ -218,7 +218,7 @@ export default function Debts() {
                 {showNominal ? <Eye className="w-4 h-4 md:w-5 md:h-5" /> : <EyeOff className="w-4 h-4 md:w-5 md:h-5" />}
               </button>
             </div>
-            <p className={`text-3xl lg:text-4xl font-black text-emerald-600 dark:text-[var(--color-stabilo)] tracking-tight mt-1 ${!showNominal && 'filter blur-[8px] opacity-70'}`}>
+            <p className="text-3xl lg:text-4xl font-black text-emerald-600 dark:text-[var(--color-stabilo)] tracking-tight mt-1">
               {showNominal ? formatRp(totalPiutang) : 'Rp ••••••••'}
             </p>
           </div>
@@ -302,7 +302,7 @@ export default function Debts() {
                         <Clock className="w-3 h-3 opacity-70" />
                         Jatuh tempo: {d.due ? new Date(d.due).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}
                       </span>
-                      <p className={`text-xl lg:text-2xl font-black tracking-tight mt-0.5 ${!showNominal && 'filter blur-[5px] opacity-70'} ${d.status === 'Paid' ? 'text-slate-500 line-through' : ''}`}>
+                      <p className={`text-xl lg:text-2xl font-black tracking-tight mt-0.5 ${d.status === 'Paid' ? 'text-slate-500 line-through' : ''}`}>
                         {showNominal ? formatRp(d.amount) : 'Rp ••••••••'}
                       </p>
                     </div>

@@ -32,26 +32,26 @@ interface AccountModalProps {
 
 export default function AccountModal({ isOpen, onClose, onRefresh, initialData }: AccountModalProps) {
   const [accountName, setAccountName] = useState('');
-  const [accountType, setAccountType] = useState('Bank');
+  const [accountType, setAccountType] = useState('Cash');
   const [initialBalance, setInitialBalance] = useState('');
   const [selectedColor, setSelectedColor] = useState('#1E3A8A');
-  const [selectedIcon, setSelectedIcon] = useState('WalletCards');
+  const [selectedIcon, setSelectedIcon] = useState('Banknote');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const token = useAuth(state => state.token);
 
   useEffect(() => {
     if (initialData && isOpen) {
       setAccountName(initialData.account_name || '');
-      setAccountType(initialData.account_type || 'Bank');
+      setAccountType(initialData.account_type || 'Cash');
       setInitialBalance(formatRupiah(initialData.initial_balance?.toString() || '0'));
       setSelectedColor(initialData.color_hex || '#1E3A8A');
-      setSelectedIcon(initialData.icon_name || 'WalletCards');
+      setSelectedIcon(initialData.icon_name || 'Banknote');
     } else if (isOpen) {
       setAccountName('');
-      setAccountType('Bank');
+      setAccountType('Cash');
       setInitialBalance('');
       setSelectedColor('#1E3A8A');
-      setSelectedIcon('WalletCards');
+      setSelectedIcon('Banknote');
     }
   }, [initialData, isOpen]);
 

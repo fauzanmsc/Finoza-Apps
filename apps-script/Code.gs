@@ -309,8 +309,8 @@ function handleCreateAccount(authToken, payload) {
   const sheet = getSheet("tb_accounts");
   const newId = 'ACC-' + generateUUID().substring(0,8);
   sheet.appendRow([
-    newId, userId, sanitizeInput(payload.account_name) || '', sanitizeInput(payload.account_type) || 'Bank', 
-    payload.initial_balance || 0, payload.color_hex || '#1E3A8A', payload.icon_name || ''
+    newId, userId, sanitizeInput(payload.account_name) || 'Tunai', sanitizeInput(payload.account_type) || 'Cash', 
+    payload.initial_balance || 0, payload.color_hex || '#1E3A8A', payload.icon_name || 'Banknote'
   ]);
   return createSuccessResponse(201, "Account created", { ...payload, id: newId });
 }
@@ -346,6 +346,36 @@ function handleCreateTransaction(authToken, payload) {
     txId, userId, payload.tx_date || now, sanitizeInput(payload.tx_type), sanitizeInput(payload.category_id) || '',
     sanitizeInput(payload.account_src_id), sanitizeInput(payload.account_dst_id) || '', payload.amount, sanitizeInput(payload.note) || '', '', now
   ]);
+
+  // Update Account Balances
+  const accSheet = getSheet("tb_accounts");
+  const accData = accSheet.getDataRange().getValues();
+  if (accData.length > 1) {
+    const accHeaders = accData[0];
+    const idCol = accHeaders.indexOf("id") !== -1 ? accHeaders.indexOf("id") : accHeaders.indexOf("account_id");
+    const balCol = accHeaders.indexOf("initial_balance");
+    
+    if (idCol !== -1 && balCol !== -1) {
+      for (let i = 1; i < accData.length; i++) {
+        let isUpdated = false;
+        if (String(accData[i][idCol]) === String(payload.account_src_id)) {
+          if (payload.tx_type === 'Expense' || payload.tx_type === 'Transfer') {
+            accData[i][balCol] = Number(accData[i][balCol]) - Number(payload.amount);
+            isUpdated = true;
+          } else if (payload.tx_type === 'Income') {
+            accData[i][balCol] = Number(accData[i][balCol]) + Number(payload.amount);
+            isUpdated = true;
+          }
+        } else if (String(accData[i][idCol]) === String(payload.account_dst_id) && payload.tx_type === 'Transfer') {
+          accData[i][balCol] = Number(accData[i][balCol]) + Number(payload.amount);
+          isUpdated = true;
+        }
+        if (isUpdated) {
+          accSheet.getRange(i + 1, balCol + 1).setValue(accData[i][balCol]);
+        }
+      }
+    }
+  }
 
   return createSuccessResponse(201, "Transaction created", { ...payload, id: txId });
 }
