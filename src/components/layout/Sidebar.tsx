@@ -18,7 +18,8 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Tags,
-  User
+  User,
+  Target
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useAuth } from '../../store/useAuth';
@@ -60,6 +61,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
     { icon: FileText, label: 'Jurnal Keuangan', path: '/journal' },
     { icon: PieChart, label: 'Anggaran Bulanan', path: '/budget' },
     { icon: Users, label: 'Hutang Piutang', path: '/debts' },
+    { icon: Target, label: 'Tujuan Finansial', path: '/goals' },
     { icon: BarChart3, label: 'Laporan Bulanan', path: '/reports' },
     { icon: Tags, label: 'Kategori', path: '/categories' },
     { icon: Settings, label: 'Pengaturan', path: '/settings' },

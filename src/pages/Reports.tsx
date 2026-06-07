@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Download, Loader2, AlertCircle } from 'lucide-react';
+import { Download, Loader2, AlertCircle, FileText, FileSpreadsheet } from 'lucide-react';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import { fetchApi } from '../services/api';
 import { useAuth } from '../store/useAuth';
 import CalendarView from '../components/reports/CalendarView';
@@ -44,6 +47,70 @@ export default function Reports() {
     }
   };
 
+  const exportToExcel = () => {
+    if (!data?.daily_data) {
+      setToastMsg('Tidak ada data untuk diekspor');
+      setTimeout(() => setToastMsg(''), 3000);
+      return;
+    }
+    
+    // Flatten transactions
+    let allTxs: any[] = [];
+    Object.keys(data.daily_data).forEach(day => {
+      if (data.daily_data[day].transactions) {
+        allTxs = [...allTxs, ...data.daily_data[day].transactions];
+      }
+    });
+    
+    if (allTxs.length === 0) {
+      setToastMsg('Tidak ada transaksi di bulan ini');
+      setTimeout(() => setToastMsg(''), 3000);
+      return;
+    }
+
+    const wsData = allTxs.map(tx => ({
+      Tanggal: new Date(tx.tx_date).toLocaleDateString('id-ID'),
+      Tipe: tx.tx_type,
+      Kategori: tx.category_id || '-',
+      Catatan: tx.note || '-',
+      Nominal: Number(tx.amount) || 0
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(wsData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Laporan Transaksi");
+    XLSX.writeFile(wb, `Laporan_Finoza_${currentMonth}_${currentYear}.xlsx`);
+  };
+
+  const exportToPDF = async () => {
+    setToastMsg('Memproses PDF...');
+    const element = document.getElementById('report-capture-area');
+    if (!element) return;
+    
+    try {
+      // Hide buttons temporarily to not include them in PDF
+      const actionBtns = document.getElementById('export-actions');
+      if (actionBtns) actionBtns.style.display = 'none';
+
+      const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+      const imgData = canvas.toDataURL('image/png');
+      
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`Laporan_Finoza_${currentMonth}_${currentYear}.pdf`);
+      
+      if (actionBtns) actionBtns.style.display = 'flex';
+      setToastMsg('');
+    } catch (error) {
+      console.error(error);
+      setToastMsg('Gagal mengekspor PDF');
+      setTimeout(() => setToastMsg(''), 3000);
+    }
+  };
+
   return (
     <div id="report-capture-area" className="p-4 lg:p-8 w-full max-w-7xl mx-auto space-y-6 md:space-y-8 antialiased">
       {/* Toast notification */}
@@ -61,8 +128,16 @@ export default function Reports() {
           `}</style>
         </div>
       )}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-4">
         <h2 className="text-xl md:text-2xl font-bold">Laporan Periode</h2>
+        <div id="export-actions" className="flex items-center gap-2">
+          <button onClick={exportToExcel} className="flex items-center gap-2 px-3 py-2 bg-green-600/10 text-green-600 dark:text-green-400 hover:bg-green-600/20 rounded-lg text-sm font-medium transition-colors">
+            <FileSpreadsheet className="w-4 h-4" /> Excel
+          </button>
+          <button onClick={exportToPDF} className="flex items-center gap-2 px-3 py-2 bg-red-600/10 text-red-600 dark:text-red-400 hover:bg-red-600/20 rounded-lg text-sm font-medium transition-colors">
+            <FileText className="w-4 h-4" /> PDF
+          </button>
+        </div>
       </div>
 
       {isLoading ? (

@@ -32,6 +32,8 @@ export default function TransactionModal({ isOpen, onClose, onRefresh, initialDa
   const [categoryId, setCategoryId] = useState('');
   const [categories, setCategories] = useState<any[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurringInterval, setRecurringInterval] = useState('Bulanan');
   const [errors, setErrors] = useState<string[]>([]);
   const token = useAuth(state => state.token);
 
@@ -118,6 +120,8 @@ export default function TransactionModal({ isOpen, onClose, onRefresh, initialDa
       account_src_id: accountId,
       account_dst_id: txType === 'Transfer' ? accountDstId : undefined,
       category_id: txType === 'Transfer' ? undefined : categoryId,
+      is_recurring: isRecurring,
+      recurring_interval: isRecurring ? recurringInterval : null,
     };
 
     const action = initialData ? 'UPDATE_TRANSACTION' : 'CREATE_TRANSACTION';
@@ -273,6 +277,33 @@ export default function TransactionModal({ isOpen, onClose, onRefresh, initialDa
                     className={`w-full bg-surface-light border border-black/5 dark:border-white/5 rounded-xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:border-[var(--color-stabilo)] transition-all ${txType === 'Transfer' ? 'text-slate-500 italic select-none' : 'text-[var(--color-text-foreground)]'}`}
                   />
                 </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-between bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 rounded-xl p-4 mt-2">
+              <div>
+                <h4 className="text-sm font-bold text-[var(--color-text-foreground)]">Transaksi Berulang</h4>
+                <p className="text-xs text-[var(--color-text-muted)] mt-0.5">Catat otomatis secara berkala</p>
+              </div>
+              <div className="flex items-center gap-3">
+                {isRecurring && (
+                  <select
+                    value={recurringInterval}
+                    onChange={(e) => setRecurringInterval(e.target.value)}
+                    className="bg-surface-light border border-black/10 dark:border-white/10 rounded-lg text-xs px-2 py-1.5 focus:outline-none"
+                  >
+                    <option value="Harian">Harian</option>
+                    <option value="Mingguan">Mingguan</option>
+                    <option value="Bulanan">Bulanan</option>
+                  </select>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setIsRecurring(!isRecurring)}
+                  className={`w-11 h-6 rounded-full transition-colors relative ${isRecurring ? 'bg-[var(--color-stabilo)]' : 'bg-slate-400 dark:bg-slate-600'}`}
+                >
+                  <div className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-all ${isRecurring ? 'left-6 shadow-sm' : 'left-1'}`} />
+                </button>
               </div>
             </div>
           </div>

@@ -22,6 +22,11 @@ let mockDebts = [
   { id: '2', name: 'Siska', type: 'Piutang (Dia Berhutang)', amount: 1200000, due: '2023-07-30', status: 'Overdue' },
 ];
 
+let mockGoals = [
+  { id: '1', name: 'Dana Darurat', target_amount: 50000000, current_amount: 15000000, deadline: '2027-12-31', color_hex: '#10B981', icon_name: 'shield' },
+  { id: '2', name: 'Liburan ke Jepang', target_amount: 25000000, current_amount: 5000000, deadline: '2026-10-15', color_hex: '#F43F5E', icon_name: 'plane' },
+];
+
 let mockCategories = [
   { id: '1', name: 'Makanan & Minuman', category_type: 'Expense', icon_name: 'pizza', color_hex: '#F43F5E' },
   { id: '2', name: 'Transportasi', category_type: 'Expense', icon_name: 'car', color_hex: '#EAB308' },
@@ -108,6 +113,8 @@ function handleMockApi(action: string, payload: any = {}) {
         resolve({ status: 'success', data: mockBudgets });
       } else if (action === 'GET_DEBTS') {
         resolve({ status: 'success', data: mockDebts });
+      } else if (action === 'GET_GOALS') {
+        resolve({ status: 'success', data: mockGoals });
       } else if (action === 'GET_REPORTS') {
         resolve({
           status: 'success',
@@ -187,6 +194,18 @@ function handleMockApi(action: string, payload: any = {}) {
         resolve({ status: 'success', message: 'Success', data: payload });
       } else if (action === 'DELETE_DEBT') {
         mockDebts = mockDebts.filter(d => d.id !== payload.id);
+        resolve({ status: 'success', message: 'Success', data: {} });
+        
+      // GOALS CRUD
+      } else if (action === 'CREATE_GOAL') {
+        const newGoal = { ...payload, id: generateId() };
+        mockGoals.push(newGoal);
+        resolve({ status: 'success', message: 'Success', data: newGoal });
+      } else if (action === 'UPDATE_GOAL') {
+        mockGoals = mockGoals.map(g => g.id === payload.id ? { ...g, ...payload } : g);
+        resolve({ status: 'success', message: 'Success', data: payload });
+      } else if (action === 'DELETE_GOAL') {
+        mockGoals = mockGoals.filter(g => g.id !== payload.id);
         resolve({ status: 'success', message: 'Success', data: {} });
         
       // CATEGORIES CRUD

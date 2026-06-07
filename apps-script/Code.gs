@@ -55,6 +55,12 @@ function doPost(e) {
       case "UPDATE_DEBT": response = handleGenericUpdate("tb_debts", payload.id, payload, authToken); break;
       case "DELETE_DEBT": response = handleGenericDelete("tb_debts", payload.id, authToken); break;
 
+      // GOALS
+      case "GET_GOALS": response = handleGetGoals(authToken); break;
+      case "CREATE_GOAL": response = handleCreateGoal(authToken, payload); break;
+      case "UPDATE_GOAL": response = handleGenericUpdate("tb_goals", payload.id, payload, authToken); break;
+      case "DELETE_GOAL": response = handleGenericDelete("tb_goals", payload.id, authToken); break;
+
       default: response = createErrorResponse(400, "Unknown action");
     }
 
@@ -76,7 +82,7 @@ function getSheet(sheetName) {
   if (!sheet) {
     sheet = ss.insertSheet(sheetName);
     if(sheetName === 'tb_transactions') {
-      sheet.appendRow(['id', 'user_id', 'tx_date', 'tx_type', 'category_id', 'account_src_id', 'account_dst_id', 'amount', 'note', 'attachment_url', 'created_at']);
+      sheet.appendRow(['id', 'user_id', 'tx_date', 'tx_type', 'category_id', 'account_src_id', 'account_dst_id', 'amount', 'note', 'attachment_url', 'created_at', 'is_recurring', 'recurring_interval']);
     } else if (sheetName === 'tb_accounts') {
       sheet.appendRow(['id', 'user_id', 'account_name', 'account_type', 'initial_balance', 'color_hex', 'icon_name']);
     } else if (sheetName === 'tb_categories') {
@@ -85,6 +91,8 @@ function getSheet(sheetName) {
       sheet.appendRow(['id', 'user_id', 'category_id', 'name', 'limit', 'color', 'created_at']);
     } else if (sheetName === 'tb_debts') {
       sheet.appendRow(['id', 'user_id', 'type', 'name', 'amount', 'due', 'status', 'created_at']);
+    } else if (sheetName === 'tb_goals') {
+      sheet.appendRow(['id', 'user_id', 'name', 'target_amount', 'current_amount', 'deadline', 'color_hex', 'icon_name', 'status', 'created_at']);
     }
   }
   return sheet;
@@ -233,6 +241,7 @@ function mapIdField(rows) {
       else if (r.account_id) r.id = r.account_id;
       else if (r.budget_id) r.id = r.budget_id;
       else if (r.debt_id) r.id = r.debt_id;
+      else if (r.goal_id) r.id = r.goal_id;
       else if (r.category_id && Object.keys(r)[0] === 'category_id') r.id = r.category_id; 
     }
     return r;
@@ -344,7 +353,8 @@ function handleCreateTransaction(authToken, payload) {
   
   sheet.appendRow([
     txId, userId, payload.tx_date || now, sanitizeInput(payload.tx_type), sanitizeInput(payload.category_id) || '',
-    sanitizeInput(payload.account_src_id), sanitizeInput(payload.account_dst_id) || '', payload.amount, sanitizeInput(payload.note) || '', '', now
+    sanitizeInput(payload.account_src_id), sanitizeInput(payload.account_dst_id) || '', payload.amount, sanitizeInput(payload.note) || '', '', now,
+    payload.is_recurring ? 'TRUE' : 'FALSE', sanitizeInput(payload.recurring_interval) || ''
   ]);
 
   // Update Account Balances
@@ -690,6 +700,47 @@ function handleGetReports(authToken, payload) {
     net_income: totalIncome - totalExpense,
     daily_data: dailyData
   });
+}
+
+// GOALS
+function handleGetGoals(authToken) {
+  const userId = getUserIdFromToken(authToken);
+  if (!userId) return createErrorResponse(401, "Unauthorized");
+  const sheet = getSheet("tb_goals");
+  const rawGoals = mapIdField(getRowsData(sheet).filter(r => String(r.user_id) === String(userId)));
+  return createSuccessResponse(200, "Goals retrieved", rawGoals.map(g => ({
+    ...g,
+    target_amount: Number(g.target_amount) || 0,
+    current_amount: Number(g.current_amount) || 0
+  })));
+}
+
+function handleCreateGoal(authToken, payload) {
+  const userId = getUserIdFromToken(authToken);
+  if (!userId) return createErrorResponse(401, "Unauthorized");
+  const sheet = getSheet("tb_goals");
+  const newId = 'GOL-' + generateUUID().substring(0,8);
+  const now = new Date().toISOString();
+  
+  const headers = sheet.getDataRange().getValues()[0];
+  const newRow = new Array(headers.length).fill('');
+  
+  headers.forEach((h, index) => {
+    const header = String(h).toLowerCase().trim();
+    if (header === 'id' || header === 'goal_id') newRow[index] = newId;
+    else if (header === 'user_id') newRow[index] = userId;
+    else if (header === 'name') newRow[index] = sanitizeInput(payload.name) || '';
+    else if (header === 'target_amount') newRow[index] = payload.target_amount || 0;
+    else if (header === 'current_amount') newRow[index] = payload.current_amount || 0;
+    else if (header === 'deadline') newRow[index] = payload.deadline || '';
+    else if (header === 'color_hex') newRow[index] = sanitizeInput(payload.color_hex) || '#10B981';
+    else if (header === 'icon_name') newRow[index] = sanitizeInput(payload.icon_name) || 'target';
+    else if (header === 'status') newRow[index] = 'Active';
+    else if (header === 'created_at') newRow[index] = now;
+  });
+
+  sheet.appendRow(newRow);
+  return createSuccessResponse(201, "Goal created", { ...payload, id: newId });
 }
 
 function createSuccessResponse(statusCode, message, data) {

@@ -10,6 +10,7 @@ import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
 import Categories from './pages/Categories';
+import Goals from './pages/Goals';
 import { useAuth } from './store/useAuth';
 import { useTheme } from './store/useTheme';
 import SplashScreen from './components/SplashScreen';
@@ -50,6 +51,7 @@ function App() {
           <Route path="reports" element={<Reports />} />
           <Route path="settings" element={<Settings />} />
           <Route path="categories" element={<Categories />} />
+          <Route path="goals" element={<Goals />} />
           {/* Other routes can be added here */}
           <Route path="*" element={<div className="p-8 text-center text-slate-400">Page not found</div>} />
         </Route>
