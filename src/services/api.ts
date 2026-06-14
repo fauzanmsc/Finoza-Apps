@@ -34,6 +34,12 @@ let mockCategories = [
   { id: '4', name: 'Transfer Masuk', category_type: 'Transfer', icon_name: 'arrow-down-left', color_hex: '#3B82F6' },
 ];
 
+let mockSchedules = [
+  { id: '1', title: 'Bayar Listrik PLN', amount: 350000, due_date: '2026-06-20', status: 'Pending', note: 'Token Listrik bulanan' },
+  { id: '2', title: 'Cicilan Mobil', amount: 4500000, due_date: '2026-06-25', status: 'Pending', note: 'Cicilan ke-12' },
+  { id: '3', title: 'Langganan Internet', amount: 400000, due_date: '2026-06-10', status: 'Completed', note: 'Biznet' }
+];
+
 export async function fetchApi(action: string, payload: any = {}, authToken?: string) {
   if (!API_URL) {
     console.warn("VITE_API_URL is not defined! Using mock responses for", action);
@@ -115,6 +121,8 @@ function handleMockApi(action: string, payload: any = {}) {
         resolve({ status: 'success', data: mockDebts });
       } else if (action === 'GET_GOALS') {
         resolve({ status: 'success', data: mockGoals });
+      } else if (action === 'GET_SCHEDULES') {
+        resolve({ status: 'success', data: mockSchedules });
       } else if (action === 'GET_REPORTS') {
         resolve({
           status: 'success',
@@ -206,6 +214,18 @@ function handleMockApi(action: string, payload: any = {}) {
         resolve({ status: 'success', message: 'Success', data: payload });
       } else if (action === 'DELETE_GOAL') {
         mockGoals = mockGoals.filter(g => g.id !== payload.id);
+        resolve({ status: 'success', message: 'Success', data: {} });
+        
+      // SCHEDULES CRUD
+      } else if (action === 'CREATE_SCHEDULE') {
+        const newSchedule = { ...payload, id: generateId() };
+        mockSchedules.push(newSchedule);
+        resolve({ status: 'success', message: 'Success', data: newSchedule });
+      } else if (action === 'UPDATE_SCHEDULE') {
+        mockSchedules = mockSchedules.map(s => s.id === payload.id ? { ...s, ...payload } : s);
+        resolve({ status: 'success', message: 'Success', data: payload });
+      } else if (action === 'DELETE_SCHEDULE') {
+        mockSchedules = mockSchedules.filter(s => s.id !== payload.id);
         resolve({ status: 'success', message: 'Success', data: {} });
         
       // CATEGORIES CRUD

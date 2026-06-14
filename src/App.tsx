@@ -11,6 +11,7 @@ import Settings from './pages/Settings';
 import Login from './pages/Login';
 import Categories from './pages/Categories';
 import Goals from './pages/Goals';
+import Schedules from './pages/Schedules';
 import { useAuth } from './store/useAuth';
 import { useTheme } from './store/useTheme';
 import SplashScreen from './components/SplashScreen';
@@ -48,6 +49,8 @@ function App() {
           <Route path="accounts" element={<Accounts />} />
           <Route path="budget" element={<Budget />} />
           <Route path="debts" element={<Debts />} />
+          <Route path="goals" element={<Goals />} />
+          <Route path="schedules" element={<Schedules />} />
           <Route path="reports" element={<Reports />} />
           <Route path="settings" element={<Settings />} />
           <Route path="categories" element={<Categories />} />

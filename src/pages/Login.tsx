@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../store/useAuth';
 import { useTheme } from '../store/useTheme';
 import { fetchApi } from '../services/api';
-import { Lock, Mail, Loader2, ArrowRight, CheckCircle2, XCircle, Eye, EyeOff, Sun, Moon } from 'lucide-react';
+import { Lock, Mail, Loader2, ArrowRight, CheckCircle2, XCircle, Eye, EyeOff, Sun, Moon, X } from 'lucide-react';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -68,8 +68,11 @@ export default function Login() {
       {/* Error Toast - Modern Center Popup */}
       {error && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-[fadeIn_0.3s_ease-out]" />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-[fadeIn_0.3s_ease-out]" onClick={() => setError('')} />
           <div className="relative bg-white dark:bg-[#121620] border border-black/5 dark:border-white/10 rounded-3xl p-8 flex flex-col items-center text-center shadow-2xl dark:shadow-[0_0_40px_rgba(0,0,0,0.5)] max-w-sm w-full animate-[popIn_0.4s_cubic-bezier(0.16,1,0.3,1)]">
+            <button onClick={() => setError('')} className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors">
+              <X className="w-5 h-5" />
+            </button>
             <div className="w-20 h-20 bg-red-100 dark:bg-red-500/20 rounded-full flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(239,68,68,0.3)]">
               <XCircle className="w-10 h-10 text-red-600 dark:text-red-400" strokeWidth={2.5} />
             </div>
