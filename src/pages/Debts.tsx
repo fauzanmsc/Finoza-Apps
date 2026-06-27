@@ -271,14 +271,17 @@ export default function Debts() {
                         <MoreVertical className="w-5 h-5" />
                       </button>
                       {activeMenuId === d.id && (
-                        <div className="absolute right-0 top-full mt-1 w-40 bg-surface-light border border-black/10 dark:border-white/10 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.2)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.6)] overflow-hidden z-50 transform origin-top-right animate-in fade-in zoom-in-95">
-                          <button onClick={() => handleEdit(d)} className="w-full px-4 py-3 text-left text-sm hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2 font-medium text-slate-800 dark:text-white">
-                            <Edit2 className="w-4 h-4" /> Edit
-                          </button>
-                          <button onClick={() => handleDelete(d.id)} className="w-full px-4 py-3 text-left text-sm hover:bg-black/5 dark:hover:bg-white/5 text-negative flex items-center gap-2 font-medium border-t border-black/5 dark:border-white/5">
-                            <Trash2 className="w-4 h-4" /> Hapus
-                          </button>
-                        </div>
+                        <>
+                          <div className="fixed inset-0 z-[40]" onClick={(e) => { e.stopPropagation(); setActiveMenuId(null); }} />
+                          <div className="absolute right-0 top-full mt-2 w-36 bg-white dark:bg-[#1a1f2e] rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.5)] border border-black/5 dark:border-white/5 overflow-hidden z-[50]">
+                            <button onClick={(e) => { e.stopPropagation(); handleEdit(d); }} className="w-full px-4 py-2 text-left text-sm hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2">
+                              <Edit2 className="w-4 h-4" /> Edit
+                            </button>
+                            <button onClick={(e) => { e.stopPropagation(); handleDelete(d.id); }} className="w-full px-4 py-2 text-left text-sm hover:bg-black/5 dark:hover:bg-white/5 text-negative flex items-center gap-2">
+                              <Trash2 className="w-4 h-4" /> Hapus
+                            </button>
+                          </div>
+                        </>
                       )}
                     </div>
                   </div>
@@ -315,14 +318,17 @@ export default function Debts() {
                         </button>
 
                         {activeMenuId === d.id && (
-                          <div className="absolute right-0 top-full mt-2 w-40 bg-surface-light border border-black/10 dark:border-white/10 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.1)] dark:shadow-[0_10px_40px_rgba(0,0,0,0.6)] overflow-hidden z-[60] transform origin-top-right animate-in fade-in zoom-in-95">
-                            <button onClick={() => handleEdit(d)} className="w-full px-4 py-3 text-left text-sm hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2 font-medium text-slate-800 dark:text-white">
-                              <Edit2 className="w-4 h-4" /> Edit
-                            </button>
-                            <button onClick={() => handleDelete(d.id)} className="w-full px-4 py-3 text-left text-sm hover:bg-black/5 dark:hover:bg-white/5 text-negative flex items-center gap-2 font-medium border-t border-black/5 dark:border-white/5">
-                              <Trash2 className="w-4 h-4" /> Hapus
-                            </button>
-                          </div>
+                          <>
+                            <div className="fixed inset-0 z-[40]" onClick={(e) => { e.stopPropagation(); setActiveMenuId(null); }} />
+                            <div className="absolute right-0 top-full mt-2 w-36 bg-white dark:bg-[#1a1f2e] rounded-xl shadow-[0_8px_30px_rgba(0,0,0,0.5)] border border-black/5 dark:border-white/5 overflow-hidden z-[50]">
+                              <button onClick={(e) => { e.stopPropagation(); handleEdit(d); }} className="w-full px-4 py-2 text-left text-sm hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2">
+                                <Edit2 className="w-4 h-4" /> Edit
+                              </button>
+                              <button onClick={(e) => { e.stopPropagation(); handleDelete(d.id); }} className="w-full px-4 py-2 text-left text-sm hover:bg-black/5 dark:hover:bg-white/5 text-negative flex items-center gap-2">
+                                <Trash2 className="w-4 h-4" /> Hapus
+                              </button>
+                            </div>
+                          </>
                         )}
                       </div>
                     </div>

@@ -28,11 +28,11 @@ export default function Schedules() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { authToken } = useAuth();
+  const token = useAuth(state => state.token);
 
   const loadSchedules = async () => {
     setIsLoading(true);
-    const res = await fetchApi('GET_SCHEDULES', {}, authToken);
+    const res = await fetchApi('GET_SCHEDULES', {}, token!);
     if (res.status === 'success') {
       setSchedules(res.data);
     }
@@ -41,7 +41,7 @@ export default function Schedules() {
 
   useEffect(() => {
     loadSchedules();
-  }, [authToken]);
+  }, [token]);
 
   const handleOpenModalForNew = (date?: string) => {
     setSelectedSchedule(null);
@@ -60,7 +60,7 @@ export default function Schedules() {
     const action = selectedSchedule ? 'UPDATE_SCHEDULE' : 'CREATE_SCHEDULE';
     const payload = selectedSchedule ? { ...data, id: selectedSchedule.id } : data;
 
-    const res = await fetchApi(action, payload, authToken);
+    const res = await fetchApi(action, payload, token!);
     if (res.status === 'success') {
       await loadSchedules();
       setIsModalOpen(false);
@@ -73,7 +73,7 @@ export default function Schedules() {
   const handleDelete = async (id: string) => {
     if (!confirm('Apakah Anda yakin ingin menghapus jadwal ini?')) return;
     setIsSubmitting(true);
-    const res = await fetchApi('DELETE_SCHEDULE', { id }, authToken);
+    const res = await fetchApi('DELETE_SCHEDULE', { id }, token!);
     if (res.status === 'success') {
       await loadSchedules();
       setIsModalOpen(false);
@@ -86,7 +86,7 @@ export default function Schedules() {
     // Optimistic update
     setSchedules(prev => prev.map(s => s.id === schedule.id ? { ...s, status: newStatus } : s));
     
-    const res = await fetchApi('UPDATE_SCHEDULE', { id: schedule.id, status: newStatus }, authToken);
+    const res = await fetchApi('UPDATE_SCHEDULE', { id: schedule.id, status: newStatus }, token!);
     if (res.status !== 'success') {
       // Revert if error
       await loadSchedules();

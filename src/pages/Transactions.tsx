@@ -231,14 +231,17 @@ export default function Transactions() {
                       </button>
 
                       {activeMenuId === menuId && (
-                        <div className="absolute right-0 top-full mt-2 w-36 bg-surface border border-black/10 dark:border-white/10 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.5)] overflow-hidden z-50 transform origin-top-right animate-[fadeIn_0.15s_ease-out]">
-                          <button onClick={() => handleEdit(tx)} className="w-full px-4 py-2 text-left text-sm hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2">
-                            <Edit2 className="w-4 h-4" /> Edit
-                          </button>
-                          <button onClick={() => handleDelete(tx.id)} className="w-full px-4 py-2 text-left text-sm hover:bg-black/5 dark:hover:bg-white/5 text-negative flex items-center gap-2">
-                            <Trash2 className="w-4 h-4" /> Hapus
-                          </button>
-                        </div>
+                        <>
+                          <div className="fixed inset-0 z-[40]" onClick={(e) => { e.stopPropagation(); setActiveMenuId(null); }} />
+                          <div className="absolute right-0 top-full mt-2 w-36 bg-surface border border-black/10 dark:border-white/10 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.5)] overflow-hidden z-[50] transform origin-top-right animate-[fadeIn_0.15s_ease-out]">
+                            <button onClick={() => handleEdit(tx)} className="w-full px-4 py-2 text-left text-sm hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2">
+                              <Edit2 className="w-4 h-4" /> Edit
+                            </button>
+                            <button onClick={() => handleDelete(tx.id)} className="w-full px-4 py-2 text-left text-sm hover:bg-black/5 dark:hover:bg-white/5 text-negative flex items-center gap-2">
+                              <Trash2 className="w-4 h-4" /> Hapus
+                            </button>
+                          </div>
+                        </>
                       )}
                     </div>
                   </div>

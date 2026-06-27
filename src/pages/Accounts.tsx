@@ -147,14 +147,17 @@ export default function Accounts() {
                     <MoreVertical className="w-5 h-5" />
                   </button>
                   {activeMenuId === acc.id && (
-                    <div className="absolute right-0 top-full mt-1 w-32 bg-surface-light border border-white/10 rounded-xl shadow-xl overflow-hidden z-10">
-                      <button onClick={(e) => { e.stopPropagation(); handleEdit(acc); }} className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 flex items-center gap-2">
-                        <Edit2 className="w-4 h-4" /> Edit
-                      </button>
-                      <button onClick={(e) => { e.stopPropagation(); handleDelete(acc.id); }} className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 text-negative flex items-center gap-2">
-                        <Trash2 className="w-4 h-4" /> Hapus
-                      </button>
-                    </div>
+                    <>
+                      <div className="fixed inset-0 z-[40]" onClick={(e) => { e.stopPropagation(); setActiveMenuId(null); }} />
+                      <div className="absolute right-0 top-full mt-2 w-36 bg-surface border border-black/10 dark:border-white/10 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.5)] overflow-hidden z-[50] transform origin-top-right animate-[fadeIn_0.15s_ease-out]">
+                        <button onClick={() => handleEdit(acc)} className="w-full px-4 py-2 text-left text-sm hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2">
+                          <Edit2 className="w-4 h-4" /> Edit
+                        </button>
+                        <button onClick={() => handleDelete(acc.id)} className="w-full px-4 py-2 text-left text-sm hover:bg-black/5 dark:hover:bg-white/5 text-negative flex items-center gap-2">
+                          <Trash2 className="w-4 h-4" /> Hapus
+                        </button>
+                      </div>
+                    </>
                   )}
                 </div>
               </div>

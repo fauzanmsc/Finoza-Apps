@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Target, Loader2, Calendar, X } from 'lucide-react';
 import { fetchApi } from '../../services/api';
 import { useAuth } from '../../store/useAuth';
+import CurrencyInput, { parseRupiah } from '../ui/CurrencyInput';
 
 interface GoalModalProps {
   isOpen: boolean;
@@ -56,6 +57,8 @@ export default function GoalModal({ isOpen, onClose, onSuccess, editingData }: G
 
     const payload = {
       ...formData,
+      target_amount: parseRupiah(formData.target_amount),
+      current_amount: parseRupiah(formData.current_amount),
       id: editingData?.id
     };
 
@@ -103,29 +106,19 @@ export default function GoalModal({ isOpen, onClose, onSuccess, editingData }: G
           <div>
             <label className="block text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Target Dana</label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] font-medium">Rp</span>
-              <input
-                type="number"
+              <CurrencyInput
                 required
-                min="0"
                 value={formData.target_amount}
-                onChange={(e) => setFormData({ ...formData, target_amount: e.target.value })}
-                className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl pl-10 pr-4 py-3 text-[var(--color-text-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--color-stabilo)] transition-all"
-                placeholder="0"
+                onChange={(val) => setFormData({ ...formData, target_amount: val })}
               />
             </div>
           </div>
           <div>
             <label className="block text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Terkumpul Saat Ini</label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] font-medium">Rp</span>
-              <input
-                type="number"
-                min="0"
+              <CurrencyInput
                 value={formData.current_amount}
-                onChange={(e) => setFormData({ ...formData, current_amount: e.target.value })}
-                className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl pl-10 pr-4 py-3 text-[var(--color-text-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--color-stabilo)] transition-all"
-                placeholder="0"
+                onChange={(val) => setFormData({ ...formData, current_amount: val })}
               />
             </div>
           </div>

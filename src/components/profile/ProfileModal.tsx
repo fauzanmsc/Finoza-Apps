@@ -114,6 +114,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                 <img 
                   src={previewUrl} 
                   alt="Profile Preview" 
+                  referrerPolicy="no-referrer"
                   onError={() => setImgError(true)}
                   className="w-24 h-24 rounded-full object-cover border-4 border-black/5 dark:border-white/10 bg-slate-800"
                 />

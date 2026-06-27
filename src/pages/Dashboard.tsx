@@ -432,6 +432,7 @@ export default function Dashboard() {
             <img
               src={user.profile_picture_url}
               alt="Profile"
+              referrerPolicy="no-referrer"
               onError={() => setImgError(true)}
               className="w-12 h-12 rounded-full object-cover bg-slate-800 border-2 border-white dark:border-slate-800 flex-shrink-0"
             />
@@ -724,6 +725,7 @@ export default function Dashboard() {
                 <img
                   src={user.profile_picture_url}
                   alt="Profile"
+                  referrerPolicy="no-referrer"
                   onError={() => setImgError(true)}
                   className="w-16 h-16 lg:w-[72px] lg:h-[72px] rounded-full object-cover bg-slate-800 border-[3px] border-white dark:border-slate-800 shadow-lg shadow-black/20"
                 />

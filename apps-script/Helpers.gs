@@ -104,4 +104,25 @@ function createErrorResponse(statusCode, message) {
   return { status: "error", statusCode: statusCode, message: message, data: null };
 }
 
-
+function mapIdField(rows) {
+  if (!rows || rows.length === 0) return [];
+  return rows.map(row => {
+    const newRow = { ...row };
+    if (newRow.id) return newRow;
+    
+    const keys = Object.keys(row);
+    if (keys.length > 0 && keys[0].endsWith('_id')) {
+        newRow.id = row[keys[0]];
+    } else {
+        // explicit check for known primary keys if first column is not the primary key
+        if (newRow.category_id && !newRow.tx_type && !newRow.budget_name && !newRow.account_src_id) newRow.id = newRow.category_id;
+        else if (newRow.budget_id) newRow.id = newRow.budget_id;
+        else if (newRow.account_id) newRow.id = newRow.account_id;
+        else if (newRow.debt_id) newRow.id = newRow.debt_id;
+        else if (newRow.goal_id) newRow.id = newRow.goal_id;
+        else if (newRow.transaction_id) newRow.id = newRow.transaction_id;
+    }
+    
+    return newRow;
+  });
+}

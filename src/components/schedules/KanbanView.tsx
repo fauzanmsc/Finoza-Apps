@@ -51,7 +51,7 @@ export default function KanbanView({ schedules, onAddClick, onScheduleClick, onT
             ? "bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400" 
             : "bg-slate-100 text-slate-600 dark:bg-white/5 dark:text-slate-400"
         )}>
-          Due: {sch.due_date}
+          Due: {sch.due_date.split('T')[0]}
         </span>
         {sch.note && (
           <span className="text-[10px] text-slate-400 truncate max-w-[100px]">{sch.note}</span>

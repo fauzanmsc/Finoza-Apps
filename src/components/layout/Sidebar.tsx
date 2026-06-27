@@ -187,6 +187,7 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
               <img
                 src={user.profile_picture_url}
                 alt="Profile"
+                referrerPolicy="no-referrer"
                 onError={() => setImgError(true)}
                 className="w-10 h-10 rounded-full object-cover bg-slate-800 flex-shrink-0"
               />

@@ -74,7 +74,7 @@ export default function Goals() {
         <EmptyState 
           icon={Target}
           title="Belum ada tujuan finansial" 
-          message="Mulai rencanakan tabungan impian Anda seperti liburan, beli gadget, atau dana darurat." 
+          description="Mulai rencanakan tabungan impian Anda seperti liburan, beli gadget, atau dana darurat." 
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
@@ -97,18 +97,13 @@ export default function Goals() {
                     </div>
                   </div>
                   
-                  <div className="relative">
-                    <button onClick={(e) => { e.stopPropagation(); setActiveMenuId(activeMenuId === goal.id ? null : goal.id); }} className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition-colors text-slate-400">
-                      <MoreVertical className="w-5 h-5" />
+                  <div className="flex items-center gap-1">
+                    <button onClick={() => handleEdit(goal)} className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition-colors text-slate-400 hover:text-[var(--color-text-foreground)]" title="Edit">
+                      <Edit2 className="w-4 h-4" />
                     </button>
-                    <ModernDropdown
-                      isOpen={activeMenuId === goal.id}
-                      onClose={() => setActiveMenuId(null)}
-                      items={[
-                        { label: 'Edit', icon: <Edit2 className="w-4 h-4" />, onClick: () => handleEdit(goal) },
-                        { label: 'Hapus', icon: <Trash2 className="w-4 h-4" />, onClick: () => handleDelete(goal.id), variant: 'danger' }
-                      ]}
-                    />
+                    <button onClick={() => handleDelete(goal.id)} className="p-1.5 rounded-lg hover:bg-red-500/10 transition-colors text-slate-400 hover:text-red-500" title="Hapus">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
 

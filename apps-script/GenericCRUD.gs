@@ -6,10 +6,13 @@ function handleGenericUpdate(sheetName, idValue, payload, authToken) {
   if (data.length <= 1) return createErrorResponse(404, "Record not found");
   
   const headers = data[0];
-  // Find ID column: first check for 'id', then find primary key column (ends with _id but NOT user_id or category_id)
+  // Find ID column: first check for 'id', then first column if it ends with '_id', then explicit primary keys
   let idColIndex = headers.indexOf('id');
+  if (idColIndex === -1 && String(headers[0]).endsWith('_id')) {
+    idColIndex = 0;
+  }
   if (idColIndex === -1) {
-    idColIndex = headers.findIndex(h => String(h).endsWith('_id') && h !== 'user_id' && h !== 'category_id' && h !== 'account_src_id' && h !== 'account_dst_id');
+    idColIndex = headers.findIndex(h => ['category_id', 'account_id', 'budget_id', 'debt_id', 'goal_id', 'transaction_id'].includes(h));
   }
   const userIdColIndex = headers.indexOf("user_id");
   
@@ -59,8 +62,11 @@ function handleGenericDelete(sheetName, idValue, authToken) {
 
   const headers = data[0];
   let idColIndex = headers.indexOf('id');
+  if (idColIndex === -1 && String(headers[0]).endsWith('_id')) {
+    idColIndex = 0;
+  }
   if (idColIndex === -1) {
-    idColIndex = headers.findIndex(h => String(h).endsWith('_id') && h !== 'user_id' && h !== 'category_id' && h !== 'account_src_id' && h !== 'account_dst_id');
+    idColIndex = headers.findIndex(h => ['category_id', 'account_id', 'budget_id', 'debt_id', 'goal_id', 'transaction_id'].includes(h));
   }
   const userIdColIndex = headers.indexOf("user_id");
 
